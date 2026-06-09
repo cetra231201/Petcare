@@ -24,6 +24,7 @@ model User {
   jadwal JadwalDokter[] @relation("DokterJadwal")
   sentMessages Pesan[] @relation("SentMessages")
   receivedMessages Pesan[] @relation("ReceivedMessages")
+  inventoryMovements InventoryMovement[]
   notifikasi Notifikasi[]
   passwordResets PasswordReset[]
   invoices Invoice[] @relation("CustomerInvoices")
@@ -45,6 +46,7 @@ model Hewan {
   Monitoring    MonitoringHarian[]
   RekamMedis    RekamMedis[]
   appointments  Appointment[] @relation("HewanAppointments")
+  invoices      Invoice[]
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 }
@@ -139,6 +141,7 @@ model Inventory {
   categoryId        String?
   category          ProductCategory? @relation(fields: [categoryId], references: [id])
   movements         InventoryMovement[]
+  items             InvoiceItem[]
   createdAt         DateTime     @default(now())
   updatedAt         DateTime     @updatedAt
 }
