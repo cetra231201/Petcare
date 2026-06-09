@@ -2,18 +2,18 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
 import bcrypt from 'bcryptjs'
-import { forbidden, getApiToken, getTokenUserId, notFound, unauthorized } from '@/lib/api-auth'
+import { forbidden, getCurrentUserWithRole, getTokenUserId, notFound, unauthorized } from '@/lib/api-auth'
 
 const updateSchema = z.object({
   name: z.string().optional(),
   email: z.string().email().optional(),
-  role: z.enum(['ADMIN', 'DOKTER', 'PELANGGAN']).optional(),
+  role: z.enum(['ADMIN', 'STAFF', 'DOKTER', 'CLIENT']).optional(),
   password: z.string().min(6).optional(),
 })
 
 export async function GET(_: Request, { params }: { params: { id: string } }) {
   try {
-    const token = await getApiToken(_)
+    const token = await getCurrentUserWithRole(_)
     if (!token) return unauthorized()
     if (token.role !== 'ADMIN' && getTokenUserId(token) !== params.id) return forbidden()
 
@@ -27,7 +27,7 @@ export async function GET(_: Request, { params }: { params: { id: string } }) {
 
 export async function PUT(req: Request, { params }: { params: { id: string } }) {
   try {
-    const token = await getApiToken(req)
+    const token = await getCurrentUserWithRole(req)
     if (!token) return unauthorized()
     if (token.role !== 'ADMIN' && getTokenUserId(token) !== params.id) return forbidden()
 
@@ -49,7 +49,7 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
 
 export async function DELETE(_: Request, { params }: { params: { id: string } }) {
   try {
-    const token = await getApiToken(_)
+    const token = await getCurrentUserWithRole(_)
     if (!token) return unauthorized()
     if (token.role !== 'ADMIN') return forbidden()
     await prisma.user.delete({ where: { id: params.id } })

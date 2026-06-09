@@ -15,7 +15,7 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
     if (!item) return notFound()
 
     const userId = getTokenUserId(token)
-    if (token.role !== 'ADMIN' && token.role !== 'DOKTER' && item.pelangganId !== userId) return forbidden()
+    if (token.role !== 'ADMIN' && token.role !== 'DOKTER' && token.role !== 'STAFF' && item.pelangganId !== userId) return forbidden()
     if (token.role === 'DOKTER' && item.dokterId !== userId && item.pelangganId !== userId) return forbidden()
 
     return NextResponse.json(item)

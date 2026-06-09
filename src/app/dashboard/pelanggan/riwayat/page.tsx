@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma'
 
 export default async function PelangganRiwayatPage() {
   const session = await auth()
-  if (!session || (session.user as any)?.role !== 'PELANGGAN') redirect('/dashboard')
+  if (!session || (session.user as any)?.role !== 'CLIENT') redirect('/dashboard')
 
   const pelangganId = (session.user as any)?.id as string
   const appointments = await prisma.appointment.findMany({

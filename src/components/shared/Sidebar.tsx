@@ -10,31 +10,37 @@ const NAV_LINKS: Record<string, { label: string; href: string }[]> = {
     { label: 'Jadwal Dokter', href: '/dashboard/admin/jadwal-dokter' },
     { label: 'Users', href: '/dashboard/admin/users' },
     { label: 'Inventory', href: '/dashboard/admin/inventory' },
+    { label: 'Petshop', href: '/dashboard/admin/petshop' },
+    { label: 'Invoice', href: '/dashboard/admin/invoice' },
     { label: 'Reports', href: '/dashboard/admin/reports' },
+  ],
+  STAFF: [
+    { label: 'Dashboard', href: '/dashboard/staff' },
+    { label: 'Appointment', href: '/dashboard/staff/appointment' },
+    { label: 'Inventory', href: '/dashboard/staff/inventory' },
+    { label: 'Petshop', href: '/dashboard/staff/petshop' },
+    { label: 'Invoice', href: '/dashboard/staff/invoice' },
   ],
   DOKTER: [
     { label: 'Dashboard', href: '/dashboard/dokter' },
     { label: 'Antrian', href: '/dashboard/dokter/antrian' },
     { label: 'Rekam Medis', href: '/dashboard/dokter/rekam-medis' },
-    { label: 'Jadwal', href: '/dashboard/dokter/jadwal' },
     { label: 'Monitoring', href: '/dashboard/dokter/monitoring' },
-    { label: 'Konsultasi', href: '/dashboard/dokter/konsultasi' },
     { label: 'Riwayat', href: '/dashboard/dokter/riwayat' },
   ],
-  PELANGGAN: [
+  CLIENT: [
     { label: 'Dashboard', href: '/dashboard/pelanggan' },
-    { label: 'Hewan', href: '/dashboard/pelanggan/hewan' },
     { label: 'Appointment', href: '/dashboard/pelanggan/appointment' },
     { label: 'Monitoring', href: '/dashboard/pelanggan/monitoring' },
     { label: 'Riwayat', href: '/dashboard/pelanggan/riwayat' },
+    { label: 'Hewan Saya', href: '/dashboard/pelanggan/hewan' },
     { label: 'Profil', href: '/dashboard/pelanggan/profil' },
-    { label: 'Konsultasi', href: '/dashboard/pelanggan/konsultasi' },
   ],
 }
 
 export default function Sidebar({ role }: { role: string }) {
   const pathname = usePathname()
-  const links = NAV_LINKS[role] || NAV_LINKS.PELANGGAN
+  const links = NAV_LINKS[role] || NAV_LINKS.CLIENT
 
   return (
     <aside className="w-64 bg-white border-r p-4 hidden md:block">

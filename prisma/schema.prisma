@@ -12,7 +12,7 @@ model User {
   name      String
   email     String   @unique
   password  String
-  role      Role     @default(PELANGGAN)
+  role      Role     @default(CLIENT)
   phone     String?
   avatar    String?
   createdAt DateTime @default(now())
@@ -26,6 +26,9 @@ model User {
   receivedMessages Pesan[] @relation("ReceivedMessages")
   notifikasi Notifikasi[]
   passwordResets PasswordReset[]
+  invoices Invoice[] @relation("CustomerInvoices")
+  approvedInvoices Invoice[] @relation("ApprovedInvoices")
+  printedInvoices Invoice[] @relation("PrintedInvoices")
 }
 
 model Hewan {
@@ -80,20 +83,36 @@ model Appointment {
 }
 
 model RekamMedis {
+  id              String   @id @default(cuid())
+  appointmentId   String   @unique
+  appointment     Appointment @relation(fields: [appointmentId], references: [id])
+  hewanId         String
+  hewan           Hewan    @relation(fields: [hewanId], references: [id])
+  dokterId        String
+  dokter          User     @relation("DokterRekamMedis", fields: [dokterId], references: [id])
+  tanggalPeriksa  DateTime
+  keluhan         String?
+  diagnosis       String?
+  tindakan        String?
+  resep           String?
+  obat            String?
+  perawatan       String?
+  dosis           String?
+  catatanPerawatan String?
+  catatanDokter   String?
+  lampiran        String[] @default([])
+  progress        TreatmentProgress[]
+  createdAt       DateTime @default(now())
+}
+
+model TreatmentProgress {
   id           String   @id @default(cuid())
-  appointmentId String  @unique
-  appointment  Appointment @relation(fields: [appointmentId], references: [id])
-  hewanId      String
-  hewan        Hewan    @relation(fields: [hewanId], references: [id])
-  dokterId     String
-  dokter       User     @relation("DokterRekamMedis", fields: [dokterId], references: [id])
-  tanggalPeriksa DateTime
-  keluhan      String?
-  diagnosis    String?
-  tindakan     String?
-  resep        String?
-  catatanDokter String?
-  lampiran     String[] @default([])
+  rekamMedisId String
+  rekamMedis   RekamMedis @relation(fields: [rekamMedisId], references: [id])
+  tanggal      DateTime @default(now())
+  kondisi      String
+  progress     String
+  catatan      String?
   createdAt    DateTime @default(now())
 }
 
@@ -109,15 +128,42 @@ model JadwalDokter {
 }
 
 model Inventory {
-  id         String   @id @default(cuid())
-  namaItem   String
-  kategori   Kategori
-  stok       Int
-  satuan     String
-  harga      Float
-  stokMinimal Int
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id                String       @id @default(cuid())
+  namaItem          String
+  kategori          Kategori
+  stok              Int
+  satuan            String
+  harga             Float
+  stokMinimal       Int
+  lastManualCheckAt DateTime?
+  categoryId        String?
+  category          ProductCategory? @relation(fields: [categoryId], references: [id])
+  movements         InventoryMovement[]
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+}
+
+model ProductCategory {
+  id          String      @id @default(cuid())
+  name        String      @unique
+  description String?
+  inventories Inventory[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
+model InventoryMovement {
+  id          String                @id @default(cuid())
+  inventoryId String
+  inventory   Inventory             @relation(fields: [inventoryId], references: [id])
+  userId      String?
+  user        User?                 @relation(fields: [userId], references: [id])
+  type        InventoryMovementType
+  quantity    Int
+  beforeStock Int
+  afterStock  Int
+  note        String?
+  createdAt   DateTime              @default(now())
 }
 
 model Pesan {
@@ -174,10 +220,53 @@ model PasswordReset {
   createdAt  DateTime @default(now())
 }
 
+model Invoice {
+  id            String       @id @default(cuid())
+  invoiceNumber String       @unique
+  customerId    String
+  customer      User         @relation("CustomerInvoices", fields: [customerId], references: [id])
+  hewanId       String?
+  hewan         Hewan?       @relation(fields: [hewanId], references: [id])
+  total         Float        @default(0)
+  status        InvoiceStatus @default(DRAFT)
+  approvedById  String?
+  approvedBy    User?        @relation("ApprovedInvoices", fields: [approvedById], references: [id])
+  approvedAt    DateTime?
+  printedById   String?
+  printedBy     User?        @relation("PrintedInvoices", fields: [printedById], references: [id])
+  printedAt     DateTime?
+  voidReason    String?
+  items         InvoiceItem[]
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+}
+
+model InvoiceItem {
+  id          String    @id @default(cuid())
+  invoiceId   String
+  invoice     Invoice   @relation(fields: [invoiceId], references: [id])
+  inventoryId String?
+  inventory   Inventory? @relation(fields: [inventoryId], references: [id])
+  namaItem    String
+  quantity    Int
+  unitPrice   Float
+  subTotal    Float
+}
+
+enum InvoiceStatus {
+  DRAFT
+  PENDING_APPROVAL
+  APPROVED
+  PRINTED
+  PAID
+  VOID
+}
+
 enum Role {
-  PELANGGAN
-  DOKTER
   ADMIN
+  STAFF
+  DOKTER
+  CLIENT
 }
 
 enum Jenis {
@@ -232,6 +321,13 @@ enum Kategori {
   OBAT
   ALAT
   KONSUMABLE
+}
+
+enum InventoryMovementType {
+  SALE
+  MANUAL_ADJUSTMENT
+  RESTOCK
+  RETURN
 }
 
 enum NotifikasiTipe {

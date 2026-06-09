@@ -1,7 +1,11 @@
 import { useEffect } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 
-export default function useSSE(userId?: string, onMessage?: (payload: any) => void) {
+export default function useSSE(
+  userId?: string,
+  onMessage?: (payload: any) => void,
+  invalidateQueryKey?: any,
+) {
   const qc = useQueryClient()
 
   useEffect(() => {
@@ -10,12 +14,16 @@ export default function useSSE(userId?: string, onMessage?: (payload: any) => vo
     es.addEventListener('message', (e: any) => {
       try {
         const payload = JSON.parse(e.data)
-        qc.invalidateQueries({ queryKey: ['konsultasi', { userId }] })
+        if (invalidateQueryKey) {
+          qc.invalidateQueries({ queryKey: invalidateQueryKey })
+        } else {
+          qc.invalidateQueries({ queryKey: ['konsultasi', { userId }] })
+        }
         onMessage?.(payload)
       } catch (err) {
         // ignore
       }
     })
     return () => es.close()
-  }, [userId, qc, onMessage])
+  }, [userId, qc, onMessage, invalidateQueryKey])
 }

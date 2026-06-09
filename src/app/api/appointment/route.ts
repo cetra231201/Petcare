@@ -28,7 +28,7 @@ export async function GET(req: Request) {
     const skip = (page - 1) * limit
     const where: any = {}
 
-    if (role === 'ADMIN') {
+    if (role === 'ADMIN' || role === 'STAFF') {
       if (pelangganId) where.pelangganId = pelangganId
       if (dokterId) where.dokterId = dokterId
     } else if (role === 'DOKTER') {
@@ -55,14 +55,14 @@ export async function POST(req: Request) {
   try {
     const token = await getApiToken(req)
     if (!token) return unauthorized()
-    if (token.role !== 'PELANGGAN' && token.role !== 'ADMIN') return forbidden()
+    if (token.role !== 'CLIENT' && token.role !== 'ADMIN') return forbidden()
 
     const body = await req.json()
     const parsed = createSchema.parse(body)
     const userId = getTokenUserId(token)
-    if (!parsed.pelangganId || token.role === 'PELANGGAN') parsed.pelangganId = userId
+    if (!parsed.pelangganId || token.role === 'CLIENT') parsed.pelangganId = userId
     if (!parsed.pelangganId) return NextResponse.json({ message: 'pelangganId is required' }, { status: 400 })
-    if (token.role === 'PELANGGAN' && parsed.pelangganId !== userId) return forbidden()
+    if (token.role === 'CLIENT' && parsed.pelangganId !== userId) return forbidden()
     const appointmentData = { ...parsed, tanggal: new Date(parsed.tanggal) } as any
     const created = await prisma.appointment.create({ data: appointmentData })
     return NextResponse.json(created, { status: 201 })

@@ -12,6 +12,10 @@ const createSchema = z.object({
   diagnosis: z.string().optional(),
   tindakan: z.string().optional(),
   resep: z.string().optional(),
+  obat: z.string().optional(),
+  perawatan: z.string().optional(),
+  dosis: z.string().optional(),
+  catatanPerawatan: z.string().optional(),
   catatanDokter: z.string().optional(),
   lampiran: z.array(z.string()).optional(),
 })
@@ -34,7 +38,7 @@ export async function GET(req: Request) {
       if (token.role !== 'ADMIN' && token.role !== 'DOKTER' && hewan.pelangganId !== userId) return forbidden()
 
       const [data, total] = await Promise.all([
-        prisma.rekamMedis.findMany({ where: { hewanId }, skip, take: limit, orderBy: { createdAt: 'desc' } }),
+        prisma.rekamMedis.findMany({ where: { hewanId }, include: { progress: { orderBy: { tanggal: 'desc' } } }, skip, take: limit, orderBy: { createdAt: 'desc' } }),
         prisma.rekamMedis.count({ where: { hewanId } }),
       ])
       return NextResponse.json({ data, meta: { page, limit, total } })
@@ -42,14 +46,14 @@ export async function GET(req: Request) {
 
     if (token.role === 'ADMIN') {
       const [data, total] = await Promise.all([
-        prisma.rekamMedis.findMany({ skip, take: limit, orderBy: { createdAt: 'desc' } }),
+        prisma.rekamMedis.findMany({ include: { progress: { orderBy: { tanggal: 'desc' } } }, skip, take: limit, orderBy: { createdAt: 'desc' } }),
         prisma.rekamMedis.count(),
       ])
       return NextResponse.json({ data, meta: { page, limit, total } })
     }
     if (token.role === 'DOKTER') {
       const [data, total] = await Promise.all([
-        prisma.rekamMedis.findMany({ where: { dokterId: userId }, skip, take: limit, orderBy: { createdAt: 'desc' } }),
+        prisma.rekamMedis.findMany({ where: { dokterId: userId }, include: { progress: { orderBy: { tanggal: 'desc' } } }, skip, take: limit, orderBy: { createdAt: 'desc' } }),
         prisma.rekamMedis.count({ where: { dokterId: userId } }),
       ])
       return NextResponse.json({ data, meta: { page, limit, total } })

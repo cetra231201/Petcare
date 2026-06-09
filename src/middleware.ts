@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { getToken } from 'next-auth/jwt'
+import { normalizeRole } from '@/lib/api-auth'
 
 const LOGIN_PATH = '/login'
 
@@ -20,8 +21,8 @@ export default async function middleware(req: NextRequest) {
     }
 
     // role guard
-    const role = (token as any).role as string | undefined
-    if (pathname.startsWith('/dashboard/pelanggan') && role !== 'PELANGGAN') {
+    const role = normalizeRole((token as any).role as string | undefined)
+    if (pathname.startsWith('/dashboard/pelanggan') && role !== 'CLIENT') {
       return NextResponse.redirect(new URL('/dashboard', req.nextUrl))
     }
     if (pathname.startsWith('/dashboard/dokter') && role !== 'DOKTER') {
@@ -30,14 +31,17 @@ export default async function middleware(req: NextRequest) {
     if (pathname.startsWith('/dashboard/admin') && role !== 'ADMIN') {
       return NextResponse.redirect(new URL('/dashboard', req.nextUrl))
     }
+    if (pathname.startsWith('/dashboard/staff') && role !== 'STAFF') {
+      return NextResponse.redirect(new URL('/dashboard', req.nextUrl))
+    }
   }
 
   // redirect logged-in users away from /login to their dashboard
   if (pathname === LOGIN_PATH) {
     const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET })
     if (token) {
-      const role = (token as any).role as string | undefined
-      const dest = role === 'ADMIN' ? '/dashboard/admin' : role === 'DOKTER' ? '/dashboard/dokter' : '/dashboard/pelanggan'
+      const role = normalizeRole((token as any).role as string | undefined)
+      const dest = role === 'ADMIN' ? '/dashboard/admin' : role === 'DOKTER' ? '/dashboard/dokter' : role === 'STAFF' ? '/dashboard/staff' : '/dashboard/pelanggan'
       const url = req.nextUrl.clone()
       url.pathname = dest
       return NextResponse.redirect(url)

@@ -2,18 +2,18 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
 import bcrypt from 'bcryptjs'
-import { forbidden, getApiToken, unauthorized } from '@/lib/api-auth'
+import { forbidden, getCurrentUserWithRole, unauthorized } from '@/lib/api-auth'
 
-const createSchema = z.object({ name: z.string(), email: z.string().email(), role: z.enum(['ADMIN','DOKTER','PELANGGAN']), password: z.string().min(6) })
+const createSchema = z.object({ name: z.string(), email: z.string().email(), role: z.enum(['ADMIN','STAFF','DOKTER','CLIENT']), password: z.string().min(6) })
 
 export async function GET(req: Request) {
   try {
-    const token = await getApiToken(req)
+    const token = await getCurrentUserWithRole(req)
     if (!token) return unauthorized()
     if (token.role !== 'ADMIN') return forbidden()
 
     const url = new URL(req.url)
-    const role = url.searchParams.get('role') as 'ADMIN' | 'DOKTER' | 'PELANGGAN' | undefined
+    const role = url.searchParams.get('role') as 'ADMIN' | 'STAFF' | 'DOKTER' | 'CLIENT' | undefined
     const where = role ? { role } : undefined
     const users = await prisma.user.findMany({ where })
     return NextResponse.json({ data: users })
@@ -26,8 +26,8 @@ export async function POST(req: Request) {
   try {
     const body = await req.json()
     const parsed = createSchema.parse(body)
-    const token = await getApiToken(req)
-    if (parsed.role !== 'PELANGGAN' && (!token || token.role !== 'ADMIN')) {
+    const token = await getCurrentUserWithRole(req)
+    if (parsed.role !== 'CLIENT' && (!token || token.role !== 'ADMIN')) {
       return forbidden()
     }
 

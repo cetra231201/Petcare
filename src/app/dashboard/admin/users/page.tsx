@@ -13,7 +13,7 @@ export default function AdminUsersPage() {
   const [deleteTarget, setDeleteTarget] = useState<any | null>(null)
   const { register, handleSubmit, reset, formState: { errors } } = useForm<AdminUserInput>({
     resolver: zodResolver(adminUserSchema),
-    defaultValues: { name: '', email: '', role: 'PELANGGAN', password: '' },
+    defaultValues: { name: '', email: '', role: 'CLIENT', password: '' },
   })
 
   const handleCreate = async (values: AdminUserInput) => {
@@ -43,7 +43,8 @@ export default function AdminUsersPage() {
             </div>
             <div>
               <select {...register('role')} className="w-full rounded-xl border border-slate-200 p-2.5">
-              <option value="PELANGGAN">Pelanggan</option>
+              <option value="CLIENT">Pelanggan</option>
+              <option value="STAFF">Staff</option>
               <option value="DOKTER">Dokter</option>
               <option value="ADMIN">Admin</option>
             </select>

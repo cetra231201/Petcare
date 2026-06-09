@@ -69,6 +69,10 @@ export const generateRekamMedisDocument = (rekam: any) => {
         <View style={styles.section}><Text style={styles.label}>Keluhan</Text><Text style={styles.value}>{rekam.keluhan || '-'}</Text></View>
         <View style={styles.section}><Text style={styles.label}>Diagnosis</Text><Text style={styles.value}>{rekam.diagnosis || '-'}</Text></View>
         <View style={styles.section}><Text style={styles.label}>Tindakan</Text><Text style={styles.value}>{rekam.tindakan || '-'}</Text></View>
+        <View style={styles.section}><Text style={styles.label}>Obat</Text><Text style={styles.value}>{rekam.obat || '-'}</Text></View>
+        <View style={styles.section}><Text style={styles.label}>Perawatan</Text><Text style={styles.value}>{rekam.perawatan || '-'}</Text></View>
+        <View style={styles.section}><Text style={styles.label}>Dosis</Text><Text style={styles.value}>{rekam.dosis || '-'}</Text></View>
+        <View style={styles.section}><Text style={styles.label}>Catatan Treatment</Text><Text style={styles.value}>{rekam.catatanPerawatan || '-'}</Text></View>
         <View style={styles.section}><Text style={styles.label}>Resep</Text><Text style={styles.value}>{rekam.resep || '-'}</Text></View>
       </Page>
     </Document>

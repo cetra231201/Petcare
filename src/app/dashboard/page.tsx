@@ -8,5 +8,6 @@ export default async function DashboardRootPage() {
   const role = (session.user as any)?.role as string | undefined
   if (role === 'ADMIN') redirect('/dashboard/admin')
   if (role === 'DOKTER') redirect('/dashboard/dokter')
+  if (role === 'STAFF') redirect('/dashboard/staff')
   redirect('/dashboard/pelanggan')
 }

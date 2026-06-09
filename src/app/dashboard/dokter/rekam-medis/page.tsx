@@ -1,6 +1,8 @@
 import { auth } from '@/auth'
 import { redirect } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
+import RekamMedisTreatmentEditor from '@/components/rekam-medis/RekamMedisTreatmentEditor'
+import TreatmentProgressManager from '@/components/rekam-medis/TreatmentProgressManager'
 
 export default async function DokterRekamMedisPage() {
   const session = await auth()
@@ -15,23 +17,43 @@ export default async function DokterRekamMedisPage() {
   })
 
   return (
-    <div>
-      <h2 className="text-2xl font-semibold text-teal-700">Rekam Medis</h2>
-      <p className="mt-1 text-sm text-slate-500">Catatan pemeriksaan yang Anda tangani.</p>
-      <div className="mt-6 space-y-3">
-        {records.length === 0 ? (
-          <div className="rounded-xl bg-white p-4 shadow-sm border border-slate-100">Belum ada rekam medis.</div>
-        ) : (
-          records.map((record) => (
-            <div key={record.id} className="rounded-xl bg-white p-4 shadow-sm border border-slate-100">
-              <div className="font-semibold text-slate-900">{record.hewan?.nama || record.hewanId}</div>
-              <div className="mt-1 text-sm text-slate-600">Tanggal: {new Date(record.tanggalPeriksa).toLocaleDateString()}</div>
-              <div className="text-sm text-slate-600">Diagnosis: {record.diagnosis || '-'}</div>
-              <div className="text-sm text-slate-600">Tindakan: {record.tindakan || '-'}</div>
-            </div>
-          ))
-        )}
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-2xl font-semibold text-teal-700">Rekam Medis & Treatment</h2>
+        <p className="mt-1 text-sm text-slate-500">Catat treatment dan progress harian untuk hewan pasien Anda.</p>
       </div>
+
+      {records.length === 0 ? (
+        <div className="rounded-xl bg-white p-4 shadow-sm border border-slate-100">Belum ada rekam medis.</div>
+      ) : (
+        <div className="grid gap-6">
+          {records.map((record) => (
+            <div key={record.id} className="grid gap-4 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm md:grid-cols-[1fr_1fr]">
+              <div className="space-y-4">
+                <div>
+                  <div className="text-lg font-semibold text-slate-900">{record.hewan?.nama || record.hewanId}</div>
+                  <div className="text-sm text-slate-500">{record.appointment?.jenis || 'Rekam medis'} • {new Date(record.tanggalPeriksa).toLocaleDateString()}</div>
+                </div>
+                <div className="rounded-xl bg-slate-50 p-4">
+                  <div className="text-sm text-slate-500">Keluhan</div>
+                  <div className="mt-1 text-slate-900">{record.keluhan || '-'}</div>
+                </div>
+                <div className="rounded-xl bg-slate-50 p-4">
+                  <div className="text-sm text-slate-500">Diagnosis</div>
+                  <div className="mt-1 text-slate-900">{record.diagnosis || '-'}</div>
+                </div>
+                <div className="rounded-xl bg-slate-50 p-4">
+                  <div className="text-sm text-slate-500">Tindakan</div>
+                  <div className="mt-1 text-slate-900">{record.tindakan || '-'}</div>
+                </div>
+                <RekamMedisTreatmentEditor record={record} />
+              </div>
+
+              <TreatmentProgressManager rekamMedis={record} allowUpdate={true} />
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

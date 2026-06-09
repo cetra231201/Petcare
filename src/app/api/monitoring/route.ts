@@ -53,7 +53,7 @@ export async function POST(req: Request) {
     const parsed = createSchema.parse(body)
     const hewan = await prisma.hewan.findUnique({ where: { id: parsed.hewanId }, select: { pelangganId: true } })
     if (!hewan) return notFound('Hewan not found')
-    if (role === 'PELANGGAN' && hewan.pelangganId !== userId) return forbidden()
+    if (role === 'CLIENT' && hewan.pelangganId !== userId) return forbidden()
 
     const created = await prisma.monitoringHarian.create({ data: { ...parsed, tanggal: new Date(parsed.tanggal) } as any })
     return NextResponse.json(created, { status: 201 })

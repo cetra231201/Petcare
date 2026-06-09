@@ -6,14 +6,21 @@ const prisma = new PrismaClient()
 async function main() {
   const password = {
     admin: await bcrypt.hash('Admin123!', 10),
+    staff: await bcrypt.hash('Staff123!', 10),
     dokter: await bcrypt.hash('Dokter123!', 10),
-    pelanggan: await bcrypt.hash('Pelanggan123!', 10),
+    client: await bcrypt.hash('Pelanggan123!', 10),
   }
 
   const admin = await prisma.user.upsert({
     where: { id: 'seed-admin' },
     update: { name: 'Admin Klinik', email: 'admin@klinik.com', password: password.admin, role: 'ADMIN', phone: '081234567890' },
     create: { id: 'seed-admin', name: 'Admin Klinik', email: 'admin@klinik.com', password: password.admin, role: 'ADMIN', phone: '081234567890' },
+  })
+
+  const staff = await prisma.user.upsert({
+    where: { id: 'seed-staff' },
+    update: { name: 'Staff Klinik', email: 'staff@klinik.com', password: password.staff, role: 'STAFF', phone: '081555555555' },
+    create: { id: 'seed-staff', name: 'Staff Klinik', email: 'staff@klinik.com', password: password.staff, role: 'STAFF', phone: '081555555555' },
   })
 
   const dokter1 = await prisma.user.upsert({
@@ -30,20 +37,20 @@ async function main() {
 
   const pelanggan1 = await prisma.user.upsert({
     where: { id: 'seed-pelanggan-1' },
-    update: { name: 'Andi', email: 'pelanggan1@klinik.com', password: password.pelanggan, role: 'PELANGGAN', phone: '083333333333' },
-    create: { id: 'seed-pelanggan-1', name: 'Andi', email: 'pelanggan1@klinik.com', password: password.pelanggan, role: 'PELANGGAN', phone: '083333333333' },
+    update: { name: 'Andi', email: 'pelanggan1@klinik.com', password: password.client, role: 'CLIENT', phone: '083333333333' },
+    create: { id: 'seed-pelanggan-1', name: 'Andi', email: 'pelanggan1@klinik.com', password: password.client, role: 'CLIENT', phone: '083333333333' },
   })
 
   const pelanggan2 = await prisma.user.upsert({
     where: { id: 'seed-pelanggan-2' },
-    update: { name: 'Bina', email: 'pelanggan2@klinik.com', password: password.pelanggan, role: 'PELANGGAN', phone: '083444444444' },
-    create: { id: 'seed-pelanggan-2', name: 'Bina', email: 'pelanggan2@klinik.com', password: password.pelanggan, role: 'PELANGGAN', phone: '083444444444' },
+    update: { name: 'Bina', email: 'pelanggan2@klinik.com', password: password.client, role: 'CLIENT', phone: '083444444444' },
+    create: { id: 'seed-pelanggan-2', name: 'Bina', email: 'pelanggan2@klinik.com', password: password.client, role: 'CLIENT', phone: '083444444444' },
   })
 
   const pelanggan3 = await prisma.user.upsert({
     where: { id: 'seed-pelanggan-3' },
-    update: { name: 'Cici', email: 'pelanggan3@klinik.com', password: password.pelanggan, role: 'PELANGGAN', phone: '083555555555' },
-    create: { id: 'seed-pelanggan-3', name: 'Cici', email: 'pelanggan3@klinik.com', password: password.pelanggan, role: 'PELANGGAN', phone: '083555555555' },
+    update: { name: 'Cici', email: 'pelanggan3@klinik.com', password: password.client, role: 'CLIENT', phone: '083555555555' },
+    create: { id: 'seed-pelanggan-3', name: 'Cici', email: 'pelanggan3@klinik.com', password: password.client, role: 'CLIENT', phone: '083555555555' },
   })
 
   const hewan1 = await prisma.hewan.upsert({
@@ -122,10 +129,45 @@ async function main() {
     create: { id: 'seed-inventory-1', namaItem: 'Paracetamol', kategori: 'OBAT', stok: 100, satuan: 'tablet', harga: 5000, stokMinimal: 10 },
   })
 
+  const inventory1 = await prisma.inventory.upsert({
+    where: { id: 'seed-inventory-1' },
+    update: { namaItem: 'Paracetamol', kategori: 'OBAT', stok: 100, satuan: 'tablet', harga: 5000, stokMinimal: 10 },
+    create: { id: 'seed-inventory-1', namaItem: 'Paracetamol', kategori: 'OBAT', stok: 100, satuan: 'tablet', harga: 5000, stokMinimal: 10 },
+  })
+
   await prisma.inventory.upsert({
     where: { id: 'seed-inventory-2' },
     update: { namaItem: 'Sarung Tangan', kategori: 'KONSUMABLE', stok: 200, satuan: 'pcs', harga: 2000, stokMinimal: 20 },
     create: { id: 'seed-inventory-2', namaItem: 'Sarung Tangan', kategori: 'KONSUMABLE', stok: 200, satuan: 'pcs', harga: 2000, stokMinimal: 20 },
+  })
+
+  await prisma.invoice.upsert({
+    where: { id: 'seed-invoice-1' },
+    update: {
+      customerId: pelanggan1.id,
+      hewanId: hewan1.id,
+      total: 25000,
+      status: 'DRAFT',
+      items: {
+        deleteMany: {},
+        create: [
+          { inventoryId: inventory1.id, namaItem: 'Paracetamol', quantity: 5, unitPrice: 5000, subTotal: 25000 },
+        ],
+      },
+    },
+    create: {
+      id: 'seed-invoice-1',
+      invoiceNumber: 'INV-0001',
+      customerId: pelanggan1.id,
+      hewanId: hewan1.id,
+      total: 25000,
+      status: 'DRAFT',
+      items: {
+        create: [
+          { inventoryId: inventory1.id, namaItem: 'Paracetamol', quantity: 5, unitPrice: 5000, subTotal: 25000 },
+        ],
+      },
+    },
   })
 
   await prisma.artikel.upsert({

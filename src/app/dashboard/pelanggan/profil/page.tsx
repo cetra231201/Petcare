@@ -5,7 +5,7 @@ import Link from 'next/link'
 
 export default async function PelangganProfilPage() {
   const session = await auth()
-  if (!session || (session.user as any)?.role !== 'PELANGGAN') redirect('/dashboard')
+  if (!session || (session.user as any)?.role !== 'CLIENT') redirect('/dashboard')
 
   const userId = (session.user as any)?.id as string
   const sessionRole = (session.user as any)?.role as string | undefined

@@ -9,7 +9,7 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
   try {
     const token = await getApiToken(req)
     if (!token) return unauthorized()
-    if (token.role !== 'ADMIN') return forbidden()
+    if (token.role !== 'ADMIN' && token.role !== 'STAFF') return forbidden()
 
     const body = await req.json()
     const parsed = updateSchema.parse(body)

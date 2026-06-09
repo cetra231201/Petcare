@@ -5,7 +5,7 @@ import DashboardShell from '@/components/shared/DashboardShell'
 
 export default async function PelangganLayout({ children }: { children: React.ReactNode }) {
   const session = await auth()
-  if (!session || (session.user as any)?.role !== 'PELANGGAN') redirect('/dashboard')
+  if (!session || (session.user as any)?.role !== 'CLIENT') redirect('/dashboard')
 
-  return <DashboardShell role="PELANGGAN">{children}</DashboardShell>
+  return <DashboardShell role="CLIENT">{children}</DashboardShell>
 }

@@ -28,7 +28,7 @@ export async function GET(req: Request) {
     const skip = (page - 1) * limit
     let where: { pelangganId?: string } | undefined
 
-    if (role === 'ADMIN' || role === 'DOKTER') {
+    if (role === 'ADMIN' || role === 'DOKTER' || role === 'STAFF') {
       where = pelangganId ? { pelangganId } : undefined
     } else {
       if (pelangganId && pelangganId !== userId) return forbidden()
@@ -56,9 +56,9 @@ export async function POST(req: Request) {
 
     const body = await req.json()
     const parsed = createSchema.parse(body)
-    if (role === 'PELANGGAN') parsed.pelangganId = userId
+    if (role === 'CLIENT') parsed.pelangganId = userId
     if (!parsed.pelangganId) return NextResponse.json({ message: 'pelangganId is required' }, { status: 400 })
-    if (role === 'PELANGGAN' && parsed.pelangganId !== userId) return forbidden()
+    if (role === 'CLIENT' && parsed.pelangganId !== userId) return forbidden()
     const created = await prisma.hewan.create({ data: parsed as any })
     return NextResponse.json(created, { status: 201 })
   } catch (err: any) {
