@@ -106,7 +106,7 @@ export default async function PelangganRiwayatPage() {
             </div>
           )}
         </div>
-      )}
+      </div>
     </div>
   )
 }
