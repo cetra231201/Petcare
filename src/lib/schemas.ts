@@ -49,6 +49,8 @@ export const inventoryAdjustmentSchema = z.object({
   note: z.string().optional(),
 })
 
+export type InventoryAdjustmentInput = z.infer<typeof inventoryAdjustmentSchema>
+
 export const adminUserSchema = z.object({
   name: z.string().min(1, 'Nama wajib diisi'),
   email: z.string().email('Email tidak valid'),

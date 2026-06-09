@@ -6,13 +6,7 @@ import useInventory from '@/hooks/useInventory'
 import useInventoryMovements from '@/hooks/useInventoryMovements'
 import { toast } from '@/components/shared/Toast'
 import ConfirmDialog from '@/components/shared/ConfirmDialog'
-import { inventorySchema, inventoryAdjustmentSchema, type InventoryInput } from '@/lib/schemas'
-
-type InventoryAdjustment = {
-  inventoryId: string
-  adjustment: number
-  note?: string
-}
+import { inventorySchema, inventoryAdjustmentSchema, type InventoryInput, type InventoryAdjustmentInput } from '@/lib/schemas'
 
 export default function StaffInventoryPage() {
   const { query, create, update, remove, adjust } = useInventory()
@@ -26,7 +20,7 @@ export default function StaffInventoryPage() {
     defaultValues: { namaItem: '', kategori: 'OBAT', stok: 0, satuan: '', harga: 0, stokMinimal: 0 },
   })
 
-  const { register: registerAdjust, handleSubmit: handleAdjustSubmit, reset: resetAdjust, formState: { errors: adjustErrors } } = useForm<InventoryAdjustment>({
+  const { register: registerAdjust, handleSubmit: handleAdjustSubmit, reset: resetAdjust, formState: { errors: adjustErrors } } = useForm<InventoryAdjustmentInput>({
     resolver: zodResolver(inventoryAdjustmentSchema),
     defaultValues: { inventoryId: '', adjustment: 0, note: '' },
   })
@@ -41,7 +35,7 @@ export default function StaffInventoryPage() {
     }
   }
 
-  const handleAdjust = async (values: InventoryAdjustment) => {
+  const handleAdjust = async (values: InventoryAdjustmentInput) => {
     try {
       await adjust.mutateAsync({ id: values.inventoryId, adjustment: values.adjustment, note: values.note })
       resetAdjust()
