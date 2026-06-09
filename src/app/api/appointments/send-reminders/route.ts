@@ -14,7 +14,7 @@ export async function POST(req: Request) {
       )
     }
 
-    const token = await getApiToken(req)
+    const token = await getApiToken()
     if (!token) return unauthorized()
     if (token.role !== 'ADMIN') return forbidden()
 

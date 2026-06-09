@@ -11,7 +11,7 @@ const adjustSchema = z.object({
 
 export async function PUT(req: Request, { params }: { params: { id: string } }) {
   try {
-    const token = await getApiToken(req)
+    const token = await getApiToken()
     if (!token) return unauthorized()
     if (token.role !== 'ADMIN' && token.role !== 'STAFF') return forbidden()
 

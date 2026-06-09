@@ -2,8 +2,18 @@
 const nextConfig = {
   reactStrictMode: true,
   output: 'standalone',
+  compress: true,
+  poweredByHeader: false,
+  generateEtags: true,
   images: {
-    domains: ['avatars.dicebear.com', 'images.petcare.example.com'],
+    remotePatterns: [
+      { protocol: 'https', hostname: 'avatars.dicebear.com' },
+      { protocol: 'https', hostname: 'images.petcare.example.com' },
+    ],
+  },
+  experimental: {
+    serverComponentsExternalPackages: ['@prisma/client', 'bcryptjs'],
+    optimizePackageImports: ['lucide-react', '@react-pdf/renderer'],
   },
   async headers() {
     return [
@@ -14,6 +24,7 @@ const nextConfig = {
           { key: 'X-Content-Type-Options', value: 'nosniff' },
           { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
           { key: 'Permissions-Policy', value: 'geolocation=(), microphone=(), camera=()' },
+          { key: 'Content-Security-Policy', value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self';" },
         ],
       },
     ]

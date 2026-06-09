@@ -24,7 +24,7 @@ interface AppointmentWhereClause {
 
 export async function GET(req: Request): Promise<NextResponse> {
   try {
-    const token = await getApiToken(req)
+    const token = await getApiToken()
     if (!token) return unauthorized()
 
     const userId = getTokenUserId(token)
@@ -51,7 +51,17 @@ export async function GET(req: Request): Promise<NextResponse> {
     }
 
     const [data, total] = await Promise.all([
-      prisma.appointment.findMany({ where, skip, take: limit, orderBy: { tanggal: 'desc' } }),
+      prisma.appointment.findMany({ 
+        where, 
+        skip, 
+        take: limit, 
+        orderBy: { tanggal: 'desc' },
+        include: {
+          pelanggan: { select: { id: true, name: true, email: true } },
+          hewan: { select: { id: true, nama: true, jenis: true } },
+          dokter: { select: { id: true, name: true } },
+        },
+      }),
       prisma.appointment.count({ where }),
     ])
 
@@ -76,7 +86,7 @@ export async function POST(req: Request): Promise<NextResponse> {
       )
     }
 
-    const token = await getApiToken(req)
+    const token = await getApiToken()
     if (!token) return unauthorized()
     if (token.role !== 'CLIENT' && token.role !== 'ADMIN') return forbidden()
 

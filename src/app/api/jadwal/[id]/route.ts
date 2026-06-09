@@ -13,7 +13,7 @@ const updateSchema = z.object({
 
 export async function PUT(req: Request, { params }: { params: { id: string } }) {
   try {
-    const token = await getApiToken(req)
+    const token = await getApiToken()
     if (!token) return unauthorized()
 
     const jadwal = await prisma.jadwalDokter.findUnique({ where: { id: params.id }, select: { dokterId: true } })
@@ -33,7 +33,7 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
 
 export async function DELETE(req: Request, { params }: { params: { id: string } }) {
   try {
-    const token = await getApiToken(req)
+    const token = await getApiToken()
     if (!token) return unauthorized()
 
     const jadwal = await prisma.jadwalDokter.findUnique({ where: { id: params.id }, select: { dokterId: true } })

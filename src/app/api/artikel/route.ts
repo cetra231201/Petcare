@@ -35,7 +35,7 @@ export async function GET() {
 
 export async function POST(req: Request) {
   try {
-    const token = await getApiToken(req)
+    const token = await getApiToken()
     if (!token) return unauthorized()
     if (token.role !== 'ADMIN') return forbidden()
 

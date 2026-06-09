@@ -4,10 +4,17 @@ import * as XLSX from 'xlsx'
 import { forbidden, getApiToken, unauthorized } from '@/lib/api-auth'
 import { logError } from '@/lib/error-logging'
 
+/**
+ * SECURITY NOTE: The xlsx package (v0.18.5) used here has known vulnerabilities.
+ * TODO: Upgrade to exceljs or another actively maintained package for production.
+ */
+
 export async function GET(req: Request) {
-  const token = await getApiToken(req)
+  const token = await getApiToken()
   if (!token) return unauthorized()
-  if (token.role !== 'ADMIN') return forbidden()
+  
+  // Strict permission check: only ADMIN and STAFF can export
+  if (token.role !== 'ADMIN' && token.role !== 'STAFF') return forbidden()
 
   try {
     const items = await prisma.inventory.findMany()
@@ -19,7 +26,14 @@ export async function GET(req: Request) {
     const wb = XLSX.utils.book_new()
     XLSX.utils.book_append_sheet(wb, ws, 'Inventory')
     const buf = XLSX.write(wb, { bookType: 'xlsx', type: 'buffer' })
-    return new Response(buf, { headers: { 'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'Content-Disposition': 'attachment; filename="inventory.xlsx"' } })
+    
+    const filename = `inventory-${new Date().toISOString().split('T')[0]}.xlsx`
+    return new Response(buf, { 
+      headers: { 
+        'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'Content-Disposition': `attachment; filename="${filename}"`,
+      } 
+    })
   } catch (error) {
     logError(error, { fileName: 'reports/inventory/xlsx/route.ts', functionName: 'GET' })
     return NextResponse.json({ message: 'Error exporting xlsx' }, { status: 500 })

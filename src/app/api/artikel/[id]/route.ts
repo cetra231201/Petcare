@@ -33,7 +33,7 @@ export async function GET(_: Request, { params }: { params: { id: string } }) {
 
 export async function PUT(req: Request, { params }: { params: { id: string } }) {
   try {
-    const token = await getApiToken(req)
+    const token = await getApiToken()
     if (!token) return unauthorized()
     if (token.role !== 'ADMIN') return forbidden()
 

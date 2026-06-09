@@ -9,7 +9,7 @@ const updateSchema = z.object({ keluhan: z.string().optional(), diagnosis: z.str
 
 export async function GET(req: Request, { params }: { params: { id: string } }) {
   try {
-    const token = await getApiToken(req)
+    const token = await getApiToken()
     if (!token) return unauthorized()
 
     const { id } = params
@@ -42,7 +42,7 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
 
 export async function PUT(req: Request, { params }: { params: { id: string } }) {
   try {
-    const token = await getApiToken(req)
+    const token = await getApiToken()
     if (!token) return unauthorized()
     if (token.role !== 'ADMIN' && token.role !== 'DOKTER') return forbidden()
 
@@ -70,7 +70,7 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
 
 export async function DELETE(req: Request, { params }: { params: { id: string } }) {
   try {
-    const token = await getApiToken(req)
+    const token = await getApiToken()
     if (!token) return unauthorized()
     if (token.role !== 'ADMIN' && token.role !== 'DOKTER') return forbidden()
 

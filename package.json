@@ -8,8 +8,15 @@
     "start": "next start",
     "send-reminders": "node scripts/send-reminders.js",
     "db:migrate": "prisma migrate deploy",
+    "db:migrate:dev": "prisma migrate dev",
+    "db:reset": "prisma migrate reset --force",
+    "db:studio": "prisma studio",
     "db:seed": "ts-node --transpile-only prisma/seed.ts",
     "prisma:generate": "prisma generate",
+    "type-check": "tsc --noEmit",
+    "lint": "next lint",
+    "lint:fix": "next lint --fix",
+    "clean": "rm -rf .next out node_modules/.cache",
     "postinstall": "prisma generate"
   },
   "dependencies": {

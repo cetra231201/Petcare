@@ -2,7 +2,7 @@ import { sseService } from '../../../../lib/sse'
 import { getApiToken, getTokenUserId, unauthorized } from '@/lib/api-auth'
 
 export async function GET(req: Request) {
-  const token = await getApiToken(req)
+  const token = await getApiToken()
   if (!token) return unauthorized()
 
   const url = new URL(req.url)
@@ -30,6 +30,8 @@ export async function GET(req: Request) {
     start(c) {
       controller = c
       const channel = userId === 'global' ? 'message:global' : `message:${userId}`
+      
+      // Subscribe to messages
       const unsubscribe = sseService.subscribe(channel, (payload) => {
         try {
           controller?.enqueue(encodeEvent({ event: 'message', data: payload }))
@@ -37,18 +39,26 @@ export async function GET(req: Request) {
       })
       cleanupFns.push(unsubscribe)
 
+      // Keep-alive ping every 20 seconds
       const keepAlive = setInterval(() => {
         try {
           controller?.enqueue(encodeEvent({ event: 'ping', data: { t: Date.now() } }))
         } catch {}
       }, 20000)
       cleanupFns.push(() => clearInterval(keepAlive))
+      
+      // Connection timeout: close after 30 minutes to prevent memory leaks
+      const connectionTimeout = setTimeout(() => {
+        cleanup()
+      }, 30 * 60 * 1000) // 30 minutes
+      cleanupFns.push(() => clearTimeout(connectionTimeout))
     },
     cancel() {
       cleanup()
     },
   })
 
+  // Cleanup on client disconnect
   req.signal.addEventListener('abort', cleanup, { once: true })
 
   return new Response(stream, {

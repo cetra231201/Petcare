@@ -5,7 +5,7 @@ import { logError } from './error-logging'
 
 export const API_ROLES = ['ADMIN', 'STAFF', 'DOKTER', 'CLIENT'] as const
 
-export async function getApiToken(req: Request): Promise<ApiToken | null> {
+export async function getApiToken(): Promise<ApiToken | null> {
   try {
     const session = await auth()
     if (!session?.user) return null
@@ -30,8 +30,8 @@ export async function getApiToken(req: Request): Promise<ApiToken | null> {
   }
 }
 
-export async function getCurrentUser(req: Request): Promise<CurrentUser | null> {
-  const token = await getApiToken(req)
+export async function getCurrentUser(): Promise<CurrentUser | null> {
+  const token = await getApiToken()
   if (!token || !token.id || !token.role || !token.email) return null
   return {
     id: token.id,
@@ -40,8 +40,8 @@ export async function getCurrentUser(req: Request): Promise<CurrentUser | null> 
   }
 }
 
-export async function getCurrentUserWithRole(req: Request): Promise<CurrentUserWithName | null> {
-  const token = await getApiToken(req)
+export async function getCurrentUserWithRole(): Promise<CurrentUserWithName | null> {
+  const token = await getApiToken()
   if (!token || !token.id || !token.role) return null
   return {
     id: getTokenUserId(token),

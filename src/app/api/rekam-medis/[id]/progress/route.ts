@@ -13,7 +13,7 @@ const progressSchema = z.object({
 
 export async function GET(req: Request, { params }: { params: { id: string } }) {
   try {
-    const token = await getApiToken(req)
+    const token = await getApiToken()
     if (!token) return unauthorized()
 
     const { id } = params
@@ -33,7 +33,7 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
 
 export async function POST(req: Request, { params }: { params: { id: string } }) {
   try {
-    const token = await getApiToken(req)
+    const token = await getApiToken()
     if (!token) return unauthorized()
     if (token.role !== 'ADMIN' && token.role !== 'DOKTER') return forbidden()
 

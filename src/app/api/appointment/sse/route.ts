@@ -2,7 +2,7 @@ import { getApiToken, unauthorized } from '@/lib/api-auth'
 import { sseService } from '@/lib/sse'
 
 export async function GET(req: Request) {
-  const token = await getApiToken(req)
+  const token = await getApiToken()
   if (!token) return unauthorized()
   if (token.role !== 'ADMIN' && token.role !== 'DOKTER') return unauthorized()
 
@@ -24,6 +24,8 @@ export async function GET(req: Request) {
   const stream = new ReadableStream({
     start(c) {
       controller = c
+      
+      // Subscribe to queue updates
       const unsubscribe = sseService.subscribe('queue:update', (payload) => {
         try {
           controller?.enqueue(encodeEvent({ event: 'queue:update', data: payload }))
@@ -31,18 +33,26 @@ export async function GET(req: Request) {
       })
       cleanupFns.push(unsubscribe)
 
+      // Keep-alive ping every 20 seconds
       const keepAlive = setInterval(() => {
         try {
           controller?.enqueue(encodeEvent({ event: 'ping', data: { t: Date.now() } }))
         } catch {}
       }, 20000)
       cleanupFns.push(() => clearInterval(keepAlive))
+      
+      // Connection timeout: close after 30 minutes to prevent memory leaks
+      const connectionTimeout = setTimeout(() => {
+        cleanup()
+      }, 30 * 60 * 1000) // 30 minutes
+      cleanupFns.push(() => clearTimeout(connectionTimeout))
     },
     cancel() {
       cleanup()
     },
   })
 
+  // Cleanup on client disconnect
   req.signal.addEventListener('abort', cleanup, { once: true })
 
   return new Response(stream, {

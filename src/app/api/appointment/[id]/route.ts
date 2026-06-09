@@ -8,11 +8,18 @@ const updateSchema = z.object({ dokterId: z.string().nullable().optional(), stat
 
 export async function GET(req: Request, { params }: { params: { id: string } }) {
   try {
-    const token = await getApiToken(req)
+    const token = await getApiToken()
     if (!token) return unauthorized()
 
     const { id } = params
-    const item = await prisma.appointment.findUnique({ where: { id } })
+    const item = await prisma.appointment.findUnique({ 
+      where: { id },
+      include: {
+        pelanggan: { select: { id: true, name: true, email: true } },
+        hewan: { select: { id: true, nama: true, jenis: true } },
+        dokter: { select: { id: true, name: true } },
+      },
+    })
     if (!item) return notFound()
 
     const userId = getTokenUserId(token)
@@ -30,7 +37,7 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
 export async function PUT(req: Request, { params }: { params: { id: string } }) {
   try {
     const { id } = params
-    const token = await getApiToken(req)
+    const token = await getApiToken()
     if (!token) return unauthorized()
 
     const item = await prisma.appointment.findUnique({ where: { id }, select: { dokterId: true, pelangganId: true } })
@@ -60,7 +67,7 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
 export async function DELETE(req: Request, { params }: { params: { id: string } }) {
   try {
     const { id } = params
-    const token = await getApiToken(req)
+    const token = await getApiToken()
     if (!token) return unauthorized()
 
     // allow ADMIN or owner (pelanggan)

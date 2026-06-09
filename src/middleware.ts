@@ -7,7 +7,10 @@ const LOGIN_PATH = '/login'
 export default auth((req) => {
   const pathname = new URL(req.url).pathname
 
-  if (pathname.startsWith('/_next') || pathname.startsWith('/api/auth')) return NextResponse.next()
+  // Bypass auth for health check and auth routes
+  if (pathname.startsWith('/_next') || pathname.startsWith('/api/auth') || pathname.startsWith('/api/health')) {
+    return NextResponse.next()
+  }
 
   if (pathname.startsWith('/dashboard')) {
     if (!req.auth) {

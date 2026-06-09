@@ -3,7 +3,23 @@ import bcrypt from 'bcryptjs'
 
 const prisma = new PrismaClient()
 
+/**
+ * ⚠️ SECURITY WARNING: This seed file contains default test passwords.
+ * BEFORE deploying to production:
+ * 1. Generate strong, unique passwords for each user
+ * 2. Update the password hashes below
+ * 3. Communicate new credentials securely to users
+ * 4. Do NOT commit production passwords to version control
+ * 5. Rotate these passwords immediately after first login
+ */
+
 async function main() {
+  // Test passwords - MUST be changed before production deployment
+  // Default passwords for development/testing only:
+  // Admin: Admin123! → CHANGE THIS
+  // Staff: Staff123! → CHANGE THIS
+  // Doctor: Dokter123! → CHANGE THIS
+  // Client: Pelanggan123! → CHANGE THIS
   const password = {
     admin: await bcrypt.hash('Admin123!', 10),
     staff: await bcrypt.hash('Staff123!', 10),

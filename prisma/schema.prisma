@@ -42,19 +42,21 @@ model Hewan {
   foto          String?
   catatanKhusus String?
   pelangganId   String
-  pelanggan     User     @relation(fields: [pelangganId], references: [id], name: "OwnerHewan")
+  pelanggan     User     @relation(fields: [pelangganId], references: [id], name: "OwnerHewan", onDelete: Cascade)
   Monitoring    MonitoringHarian[]
   RekamMedis    RekamMedis[]
   appointments  Appointment[] @relation("HewanAppointments")
   invoices      Invoice[]
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+
+  @@index([pelangganId])
 }
 
 model MonitoringHarian {
   id            String   @id @default(cuid())
   hewanId       String
-  hewan         Hewan    @relation(fields: [hewanId], references: [id])
+  hewan         Hewan    @relation(fields: [hewanId], references: [id], onDelete: Cascade)
   tanggal       DateTime
   beratBadan    Float?
   suhu          Float?
@@ -62,16 +64,18 @@ model MonitoringHarian {
   aktivitas     Aktivitas
   catatanGejala String?
   createdAt     DateTime @default(now())
+
+  @@index([hewanId])
 }
 
 model Appointment {
   id          String   @id @default(cuid())
   pelangganId String
-  pelanggan   User     @relation("PelangganAppointments", fields: [pelangganId], references: [id])
+  pelanggan   User     @relation("PelangganAppointments", fields: [pelangganId], references: [id], onDelete: Cascade)
   hewanId     String
-  hewan       Hewan    @relation("HewanAppointments", fields: [hewanId], references: [id])
+  hewan       Hewan    @relation("HewanAppointments", fields: [hewanId], references: [id], onDelete: Cascade)
   dokterId    String?
-  dokter      User?    @relation("DokterAppointments", fields: [dokterId], references: [id])
+  dokter      User?    @relation("DokterAppointments", fields: [dokterId], references: [id], onDelete: SetNull)
   tanggal     DateTime
   waktu       String
   jenis       JenisLayanan
@@ -82,16 +86,20 @@ model Appointment {
   updatedAt   DateTime @updatedAt
   RekamMedis   RekamMedis?
   messages     Pesan[]  @relation("AppointmentMessages")
+
+  @@index([pelangganId])
+  @@index([hewanId])
+  @@index([dokterId])
 }
 
 model RekamMedis {
   id              String   @id @default(cuid())
   appointmentId   String   @unique
-  appointment     Appointment @relation(fields: [appointmentId], references: [id])
+  appointment     Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
   hewanId         String
-  hewan           Hewan    @relation(fields: [hewanId], references: [id])
+  hewan           Hewan    @relation(fields: [hewanId], references: [id], onDelete: Cascade)
   dokterId        String
-  dokter          User     @relation("DokterRekamMedis", fields: [dokterId], references: [id])
+  dokter          User     @relation("DokterRekamMedis", fields: [dokterId], references: [id], onDelete: Cascade)
   tanggalPeriksa  DateTime
   keluhan         String?
   diagnosis       String?
@@ -105,28 +113,36 @@ model RekamMedis {
   lampiran        String[] @default([])
   progress        TreatmentProgress[]
   createdAt       DateTime @default(now())
+
+  @@index([appointmentId])
+  @@index([hewanId])
+  @@index([dokterId])
 }
 
 model TreatmentProgress {
   id           String   @id @default(cuid())
   rekamMedisId String
-  rekamMedis   RekamMedis @relation(fields: [rekamMedisId], references: [id])
+  rekamMedis   RekamMedis @relation(fields: [rekamMedisId], references: [id], onDelete: Cascade)
   tanggal      DateTime @default(now())
   kondisi      String
   progress     String
   catatan      String?
   createdAt    DateTime @default(now())
+
+  @@index([rekamMedisId])
 }
 
 model JadwalDokter {
   id         String   @id @default(cuid())
   dokterId   String
-  dokter     User     @relation("DokterJadwal", fields: [dokterId], references: [id])
+  dokter     User     @relation("DokterJadwal", fields: [dokterId], references: [id], onDelete: Cascade)
   hari       Hari
   jamMulai   String
   jamSelesai String
   isAktif    Boolean  @default(true)
   createdAt  DateTime @default(now())
+
+  @@index([dokterId])
 }
 
 model Inventory {
@@ -139,11 +155,13 @@ model Inventory {
   stokMinimal       Int
   lastManualCheckAt DateTime?
   categoryId        String?
-  category          ProductCategory? @relation(fields: [categoryId], references: [id])
+  category          ProductCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   movements         InventoryMovement[]
   items             InvoiceItem[]
   createdAt         DateTime     @default(now())
   updatedAt         DateTime     @updatedAt
+
+  @@index([categoryId])
 }
 
 model ProductCategory {
@@ -158,39 +176,48 @@ model ProductCategory {
 model InventoryMovement {
   id          String                @id @default(cuid())
   inventoryId String
-  inventory   Inventory             @relation(fields: [inventoryId], references: [id])
+  inventory   Inventory             @relation(fields: [inventoryId], references: [id], onDelete: Cascade)
   userId      String?
-  user        User?                 @relation(fields: [userId], references: [id])
+  user        User?                 @relation(fields: [userId], references: [id], onDelete: SetNull)
   type        InventoryMovementType
   quantity    Int
   beforeStock Int
   afterStock  Int
   note        String?
   createdAt   DateTime              @default(now())
+
+  @@index([inventoryId])
+  @@index([userId])
 }
 
 model Pesan {
   id           String   @id @default(cuid())
   senderId     String
-  sender       User     @relation("SentMessages", fields: [senderId], references: [id])
+  sender       User     @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
   receiverId   String
-  receiver     User     @relation("ReceivedMessages", fields: [receiverId], references: [id])
+  receiver     User     @relation("ReceivedMessages", fields: [receiverId], references: [id], onDelete: Cascade)
   appointmentId String?
-  appointment  Appointment? @relation("AppointmentMessages", fields: [appointmentId], references: [id])
+  appointment  Appointment? @relation("AppointmentMessages", fields: [appointmentId], references: [id], onDelete: Cascade)
   isi          String
   isRead       Boolean  @default(false)
   createdAt    DateTime @default(now())
+
+  @@index([senderId])
+  @@index([receiverId])
+  @@index([appointmentId])
 }
 
 model Notifikasi {
   id        String   @id @default(cuid())
   userId    String
-  user      User     @relation(fields: [userId], references: [id])
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   judul     String
   isi       String
   tipe      NotifikasiTipe
   isRead    Boolean  @default(false)
   createdAt DateTime @default(now())
+
+  @@index([userId])
 }
 
 
@@ -216,27 +243,29 @@ model Artikel {
 model PasswordReset {
   id         String   @id @default(cuid())
   userId     String
-  user       User     @relation(fields: [userId], references: [id])
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   tokenHash  String
   expiresAt  DateTime
   used       Boolean  @default(false)
   createdAt  DateTime @default(now())
+
+  @@index([userId])
 }
 
 model Invoice {
   id            String       @id @default(cuid())
   invoiceNumber String       @unique
   customerId    String
-  customer      User         @relation("CustomerInvoices", fields: [customerId], references: [id])
+  customer      User         @relation("CustomerInvoices", fields: [customerId], references: [id], onDelete: Cascade)
   hewanId       String?
-  hewan         Hewan?       @relation(fields: [hewanId], references: [id])
+  hewan         Hewan?       @relation(fields: [hewanId], references: [id], onDelete: SetNull)
   total         Float        @default(0)
   status        InvoiceStatus @default(DRAFT)
   approvedById  String?
-  approvedBy    User?        @relation("ApprovedInvoices", fields: [approvedById], references: [id])
+  approvedBy    User?        @relation("ApprovedInvoices", fields: [approvedById], references: [id], onDelete: SetNull)
   approvedAt    DateTime?
   printedById   String?
-  printedBy     User?        @relation("PrintedInvoices", fields: [printedById], references: [id])
+  printedBy     User?        @relation("PrintedInvoices", fields: [printedById], references: [id], onDelete: SetNull)
   printedAt     DateTime?
   voidReason    String?
   items         InvoiceItem[]
@@ -245,14 +274,17 @@ model Invoice {
 
   @@index([status])
   @@index([customerId])
+  @@index([hewanId])
+  @@index([approvedById])
+  @@index([printedById])
 }
 
 model InvoiceItem {
   id          String    @id @default(cuid())
   invoiceId   String
-  invoice     Invoice   @relation(fields: [invoiceId], references: [id])
+  invoice     Invoice   @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
   inventoryId String?
-  inventory   Inventory? @relation(fields: [inventoryId], references: [id])
+  inventory   Inventory? @relation(fields: [inventoryId], references: [id], onDelete: SetNull)
   namaItem    String
   quantity    Int
   unitPrice   Float

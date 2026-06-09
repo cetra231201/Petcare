@@ -5,7 +5,7 @@ import { forbidden, getApiToken, unauthorized } from '@/lib/api-auth'
 import { logError } from '@/lib/error-logging'
 
 export async function GET(req: Request) {
-  const token = await getApiToken(req)
+  const token = await getApiToken()
   if (!token) return unauthorized()
 
   const url = new URL(req.url)

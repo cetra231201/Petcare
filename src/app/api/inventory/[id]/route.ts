@@ -8,7 +8,7 @@ const updateSchema = z.object({ namaItem: z.string().optional(), kategori: z.str
 
 export async function PUT(req: Request, { params }: { params: { id: string } }) {
   try {
-    const token = await getApiToken(req)
+    const token = await getApiToken()
     if (!token) return unauthorized()
     if (token.role !== 'ADMIN' && token.role !== 'STAFF') return forbidden()
 
@@ -26,7 +26,7 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
 
 export async function DELETE(_: Request, { params }: { params: { id: string } }) {
   try {
-    const token = await getApiToken(_)
+    const token = await getApiToken()
     if (!token) return unauthorized()
     if (token.role !== 'ADMIN') return forbidden()
     const item = await prisma.inventory.findUnique({ where: { id: params.id } })

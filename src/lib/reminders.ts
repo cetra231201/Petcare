@@ -1,5 +1,6 @@
 import prisma from '@/lib/prisma'
 import { sendAppointmentReminder } from './email'
+import { logError } from './error-logging'
 
 export async function sendUpcomingAppointmentReminders(windowHours = 24) {
   const now = new Date()
@@ -22,7 +23,7 @@ export async function sendUpcomingAppointmentReminders(windowHours = 24) {
       sent++
     } catch (err) {
       // log and continue
-      console.error('Failed sending reminder for', a.id, err)
+      logError(err, { fileName: 'reminders.ts', functionName: 'sendUpcomingAppointmentReminders', additionalContext: { appointmentId: a.id } })
     }
   }
 

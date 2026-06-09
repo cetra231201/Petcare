@@ -17,6 +17,11 @@ type SSEEvent = {
 export class InMemorySSEAdapter implements SSEAdapter {
   private emitter = new EventEmitter()
 
+  constructor() {
+    // Prevent Node.js MaxListenersExceeded warnings in production
+    this.emitter.setMaxListeners(100)
+  }
+
   publish(event: SSEEvent) {
     this.emitter.emit(event.type, event.payload)
   }

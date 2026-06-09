@@ -9,26 +9,40 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: petcare
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
     steps:
       - uses: actions/checkout@v4
-        with:
-          path: petcare-main
       - name: Use Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
       - name: Install deps
         run: npm ci
-        working-directory: petcare-main
       - name: Generate Prisma Client
         run: npx prisma generate
-        working-directory: petcare-main
+      - name: Run Prisma migrations
+        run: npx prisma migrate deploy
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/petcare
       - name: Type-check
         run: npx tsc --noEmit
-        working-directory: petcare-main
       - name: Lint
         run: npx next lint
-        working-directory: petcare-main
       - name: Build
         run: npm run build
-        working-directory: petcare-main
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/petcare
+

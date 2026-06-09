@@ -16,8 +16,22 @@ function getClientIp(req: Request) {
   return forwarded || req.headers.get('x-real-ip') || 'unknown'
 }
 
+/**
+ * In-memory rate limiter for single-instance deployments.
+ * WARNING: This implementation is NOT suitable for multi-instance deployments (Docker Swarm, Kubernetes, etc.)
+ * because each instance maintains its own in-memory store.
+ *
+ * TODO: Replace with a distributed rate limiter using Redis or similar for production scaling.
+ * Example: use @upstash/ratelimit with Redis backend.
+ */
 export function checkRateLimit(req: Request, key: string, max: number, windowMs: number): RateLimitResult {
   const ip = getClientIp(req)
+  
+  // Handle undefined or invalid identifier
+  if (!key || !ip) {
+    return { limited: false, remaining: max, retryAfterSeconds: 0 }
+  }
+  
   const id = `${key}:${ip}`
   const now = Date.now()
   const existing = rateLimitStore.get(id)

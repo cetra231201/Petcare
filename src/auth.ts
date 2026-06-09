@@ -1,6 +1,5 @@
 import NextAuth from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
-import { PrismaAdapter } from '@auth/prisma-adapter'
 import bcrypt from 'bcryptjs'
 import { prisma } from '@/lib/prisma'
 import type { User } from '@prisma/client'
@@ -14,8 +13,13 @@ interface AuthorizeUser {
   avatar?: string | null
 }
 
+if (!process.env.NEXTAUTH_SECRET) {
+  throw new Error(
+    'NEXTAUTH_SECRET is not defined. Please set it in your .env file.',
+  )
+}
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  adapter: PrismaAdapter(prisma),
   providers: [
     CredentialsProvider({
       name: 'Credentials',
@@ -35,7 +39,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       },
     }),
   ],
-  session: { strategy: 'jwt' },
+  session: { 
+    strategy: 'jwt',
+    maxAge: 60 * 60 * 8, // 8 hours
+  },
   callbacks: {
     async jwt({ token, user }): Promise<JWT> {
       if (user) {
@@ -61,4 +68,5 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     signIn: '/login',
   },
   secret: process.env.NEXTAUTH_SECRET,
+  trustHost: true,
 })

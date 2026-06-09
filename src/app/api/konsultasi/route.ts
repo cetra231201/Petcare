@@ -12,7 +12,7 @@ const createSchema = z.object({
 
 export async function GET(req: Request) {
   try {
-    const token = await getApiToken(req)
+    const token = await getApiToken()
     if (!token) return unauthorized()
 
     const userId = getTokenUserId(token)
@@ -49,7 +49,7 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
-    const token = await getApiToken(req)
+    const token = await getApiToken()
     if (!token) return unauthorized()
 
     const senderId = getTokenUserId(token)

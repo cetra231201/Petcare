@@ -10,7 +10,7 @@ const updateSchema = z.object({
 
 export async function PATCH(req: Request, { params }: { params: { id: string } }) {
   try {
-    const token = await getApiToken(req)
+    const token = await getApiToken()
     if (!token) return unauthorized()
 
     const item = await prisma.notifikasi.findUnique({ where: { id: params.id }, select: { userId: true } })

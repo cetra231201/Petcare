@@ -9,7 +9,7 @@ const createSchema = z.object({ dokterId: z.string(), hari: z.enum(['SENIN', 'SE
 
 export async function GET(req: Request) {
   try {
-    const token = await getApiToken(req)
+    const token = await getApiToken()
     if (!token) return unauthorized()
 
     const url = new URL(req.url)
@@ -35,7 +35,7 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
-    const token = await getApiToken(req)
+    const token = await getApiToken()
     if (!token) return unauthorized()
     if (token.role !== 'ADMIN' && token.role !== 'DOKTER') return forbidden()
 

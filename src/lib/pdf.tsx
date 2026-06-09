@@ -128,7 +128,13 @@ export const generateAppointmentsPdfDocument = (appointments: AppointmentReportI
 }
 
 export async function createPdfBufferFromDocument(docElement: React.ReactElement) {
-  const doc = pdf(docElement)
-  const buffer = await doc.toBuffer()
-  return buffer
+  try {
+    const doc = pdf(docElement)
+    // Note: In @react-pdf/renderer v4, pdf() returns an object with toBuffer() method
+    // This is the correct approach (renderToBuffer was deprecated in v4)
+    const buffer = await doc.toBuffer()
+    return buffer
+  } catch (error) {
+    throw new Error(`PDF generation failed: ${error instanceof Error ? error.message : String(error)}`)
+  }
 }

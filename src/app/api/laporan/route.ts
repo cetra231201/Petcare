@@ -6,7 +6,7 @@ import { logError } from '@/lib/error-logging'
 
 export async function GET(req: Request) {
   try {
-    const token = await getApiToken(req)
+    const token = await getApiToken()
     if (!token) return unauthorized()
     if (token.role !== 'ADMIN' && token.role !== 'DOKTER') return forbidden()
 
