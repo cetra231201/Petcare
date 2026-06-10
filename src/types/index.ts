@@ -167,6 +167,17 @@ export interface InvoiceItemCreateInput {
   unitPrice: number
   subTotal: number
   inventoryId?: string | null
+  serviceId?: string | null
+}
+
+export type Service = Prisma.ServiceGetPayload<{}>
+
+export interface ServiceCreateInput {
+  nama: string
+  deskripsi?: string | null
+  harga: number
+  kategori?: string | null
+  isActive?: boolean
 }
 
 // Inventory Types

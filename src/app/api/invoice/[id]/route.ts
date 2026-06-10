@@ -11,6 +11,7 @@ const updateSchema = z.object({
   status: z.enum(['DRAFT', 'PENDING_APPROVAL']).optional(),
   items: z.array(z.object({
     inventoryId: z.string().optional(),
+    serviceId: z.string().optional(),
     namaItem: z.string().min(1),
     quantity: z.coerce.number().int().min(1),
     unitPrice: z.coerce.number().min(0),
@@ -25,7 +26,7 @@ export async function GET(req: NextRequest, context: any) {
 
     const invoice = await prisma.invoice.findUnique({
       where: { id: context.params.id },
-      include: { customer: true, hewan: true, approvedBy: true, printedBy: true, items: true },
+      include: { customer: true, hewan: true, approvedBy: true, printedBy: true, items: { include: { service: true } } },
     })
     if (!invoice) return notFound()
 
@@ -61,6 +62,7 @@ export async function PUT(req: NextRequest, context: any) {
         deleteMany: {},
         create: parsed.items.map((item) => ({
           inventoryId: item.inventoryId,
+          serviceId: item.serviceId,
           namaItem: item.namaItem,
           quantity: item.quantity,
           unitPrice: item.unitPrice,

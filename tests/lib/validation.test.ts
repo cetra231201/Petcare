@@ -3,6 +3,7 @@ import {
   appointmentCreateSchema,
   invoiceCreateSchema,
   rekamMedisCreateSchema,
+  serviceCreateSchema,
   userCreateSchema,
 } from '@/lib/validation/schemas'
 
@@ -52,6 +53,34 @@ describe('validation schemas', () => {
       customerId: 'user123',
       items: [],
     })).toThrow()
+  })
+
+  it('accepts invoice items with service references', () => {
+    const payload = {
+      customerId: 'user123',
+      items: [
+        {
+          serviceId: 'service123',
+          namaItem: 'Vaksinasi',
+          quantity: 1,
+          unitPrice: 150000,
+        },
+      ],
+    }
+
+    const result = invoiceCreateSchema.parse(payload)
+    expect(result.items[0].serviceId).toBe('service123')
+  })
+
+  it('validates service creation payload', () => {
+    const payload = {
+      nama: 'Konsultasi Dokter',
+      harga: 175000,
+    }
+
+    const result = serviceCreateSchema.parse(payload)
+    expect(result.nama).toBe(payload.nama)
+    expect(result.harga).toBe(payload.harga)
   })
 
   it('validates medical record creation payload', () => {

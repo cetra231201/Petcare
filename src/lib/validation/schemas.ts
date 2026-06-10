@@ -77,6 +77,14 @@ export const inventoryCreateSchema = z.object({
   categoryId: z.string().optional(),
 })
 
+export const serviceCreateSchema = z.object({
+  nama: z.string().min(1, 'Nama layanan wajib diisi'),
+  deskripsi: z.string().optional(),
+  harga: z.coerce.number().min(0, 'Harga layanan tidak boleh negatif'),
+  kategori: z.string().optional(),
+  isActive: z.boolean().optional().default(true),
+})
+
 export const inventoryUpdateSchema = z.object({
   namaItem: z.string().min(1).optional(),
   kategori: inventoryKategoriSchema.optional(),
@@ -97,6 +105,7 @@ export const inventoryAdjustmentSchema = z.object({
 
 export const invoiceItemSchema = z.object({
   inventoryId: z.string().optional(),
+  serviceId: z.string().optional(),
   namaItem: z.string().min(1, 'Nama item wajib diisi'),
   quantity: z.coerce.number().int().min(1, 'Jumlah harus minimal 1'),
   unitPrice: z.coerce.number().min(0, 'Harga satuan tidak boleh negatif'),

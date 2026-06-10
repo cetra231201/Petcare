@@ -33,7 +33,7 @@ export async function GET(req: Request) {
     const invoices = await prisma.invoice.findMany({
       where: status ? { status } : undefined,
       orderBy: { createdAt: 'desc' },
-      include: { customer: true, hewan: true, approvedBy: true, printedBy: true, items: true },
+      include: { customer: true, hewan: true, approvedBy: true, printedBy: true, items: { include: { service: true } } },
     })
 
     return NextResponse.json({ data: invoices })
@@ -67,6 +67,7 @@ export async function POST(req: Request) {
         items: {
           create: parsed.items.map((item) => ({
             inventoryId: item.inventoryId,
+            serviceId: item.serviceId,
             namaItem: item.namaItem,
             quantity: item.quantity,
             unitPrice: item.unitPrice,
@@ -74,7 +75,7 @@ export async function POST(req: Request) {
           })),
         },
       },
-      include: { items: true },
+      include: { items: { include: { service: true } } },
     })
 
     return NextResponse.json(created, { status: 201 })
