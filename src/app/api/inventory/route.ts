@@ -1,19 +1,10 @@
 import { NextResponse } from 'next/server'
+import { ZodError } from 'zod'
 import { prisma } from '@/lib/prisma'
-import { z } from 'zod'
 import { forbidden, getApiToken, unauthorized } from '@/lib/api-auth'
 import { logError } from '@/lib/error-logging'
+import { inventoryCreateSchema } from '@/lib/validation/schemas'
 import type { ApiPaginatedResponse, InventoryCreateInput } from '@/types'
-
-const createSchema = z.object({
-  namaItem: z.string(),
-  kategori: z.enum(['OBAT', 'ALAT', 'KONSUMABLE']),
-  stok: z.number(),
-  satuan: z.string(),
-  harga: z.number(),
-  stokMinimal: z.number(),
-  categoryId: z.string().optional(),
-})
 
 export async function GET(req: Request): Promise<NextResponse> {
   try {
@@ -54,7 +45,7 @@ export async function POST(req: Request): Promise<NextResponse> {
     if (token.role !== 'ADMIN' && token.role !== 'STAFF') return forbidden()
 
     const body = await req.json()
-    const parsed = createSchema.parse(body)
+    const parsed = inventoryCreateSchema.parse(body)
 
     const createData: InventoryCreateInput = {
       namaItem: parsed.namaItem,
@@ -73,7 +64,7 @@ export async function POST(req: Request): Promise<NextResponse> {
       fileName: 'inventory/route.ts',
       functionName: 'POST',
     })
-    if (error instanceof z.ZodError) {
+    if (error instanceof ZodError) {
       return NextResponse.json({ message: 'Invalid input', details: error.errors }, { status: 400 })
     }
     const errorMessage = error instanceof Error ? error.message : 'Failed to create inventory'

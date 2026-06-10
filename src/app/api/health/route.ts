@@ -10,7 +10,9 @@ export async function GET() {
     await prisma.$queryRaw`SELECT 1`
     
     // Get version from package.json
-    const packageJson = await import('@/../../package.json', { with: { type: 'json' } }).then(m => m.default).catch(() => ({ version: 'unknown' }))
+    const packageJson = await import('@/../../package.json')
+      .then(m => (m as any).default)
+      .catch(() => ({ version: 'unknown' }))
     
     const response = {
       status: 'ok' as const,

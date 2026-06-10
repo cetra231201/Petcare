@@ -1,18 +1,18 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { z } from 'zod'
 import { forbidden, getApiToken, getTokenUserId, notFound, unauthorized } from '@/lib/api-auth'
 import { logError } from '@/lib/error-logging'
 import { sseService } from '@/lib/sse'
+import { rekamMedisUpdateSchema } from '@/lib/validation/schemas'
 
-const updateSchema = z.object({ keluhan: z.string().optional(), diagnosis: z.string().optional(), tindakan: z.string().optional(), resep: z.string().optional(), obat: z.string().optional(), perawatan: z.string().optional(), dosis: z.string().optional(), catatanPerawatan: z.string().optional(), catatanDokter: z.string().optional(), lampiran: z.array(z.string()).optional() })
+const updateSchema = rekamMedisUpdateSchema
 
-export async function GET(req: Request, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, context: any) {
   try {
     const token = await getApiToken()
     if (!token) return unauthorized()
 
-    const { id } = params
+    const { id } = context.params
     const item = await prisma.rekamMedis.findUnique({
       where: { id },
       select: {
@@ -40,13 +40,13 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
   }
 }
 
-export async function PUT(req: Request, { params }: { params: { id: string } }) {
+export async function PUT(req: NextRequest, context: any) {
   try {
     const token = await getApiToken()
     if (!token) return unauthorized()
     if (token.role !== 'ADMIN' && token.role !== 'DOKTER') return forbidden()
 
-    const { id } = params
+    const { id } = context.params
     const item = await prisma.rekamMedis.findUnique({ where: { id }, select: { dokterId: true } })
     if (!item) return notFound()
     if (token.role === 'DOKTER' && item.dokterId !== getTokenUserId(token)) return forbidden()
@@ -68,13 +68,13 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
   }
 }
 
-export async function DELETE(req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, context: any) {
   try {
     const token = await getApiToken()
     if (!token) return unauthorized()
     if (token.role !== 'ADMIN' && token.role !== 'DOKTER') return forbidden()
 
-    const { id } = params
+    const { id } = context.params
     const item = await prisma.rekamMedis.findUnique({ where: { id }, select: { dokterId: true } })
     if (!item) return notFound()
     if (token.role === 'DOKTER' && item.dokterId !== getTokenUserId(token)) return forbidden()

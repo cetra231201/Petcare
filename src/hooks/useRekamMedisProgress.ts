@@ -16,8 +16,8 @@ export function useRekamMedisProgress(rekamMedisId?: string) {
     enabled: !!rekamMedisId,
   })
 
-  const create = useMutation<TreatmentProgress, Error, { rekamMedisId: string; data: { kondisi: string; progress: string; catatan?: string } }>(
-    async ({ rekamMedisId, data }) => {
+  const create = useMutation<TreatmentProgress, Error, { rekamMedisId: string; data: { kondisi: string; progress: string; catatan?: string } }>({
+    mutationFn: async ({ rekamMedisId, data }) => {
       const res = await fetch(`/api/rekam-medis/${rekamMedisId}/progress`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -26,13 +26,11 @@ export function useRekamMedisProgress(rekamMedisId?: string) {
       if (!res.ok) throw new Error('Gagal membuat progress')
       return res.json()
     },
-    {
-      onSuccess: (_data, variables) => {
-        qc.invalidateQueries({ queryKey: key })
-        qc.invalidateQueries({ queryKey: ['rekam-medis', variables.rekamMedisId] })
-      },
+    onSuccess: (_data, variables) => {
+      qc.invalidateQueries({ queryKey: key })
+      qc.invalidateQueries({ queryKey: ['rekam-medis', variables.rekamMedisId] })
     },
-  )
+  })
 
   return { query, create }
 }

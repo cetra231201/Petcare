@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
 import { forbidden, getApiToken, getTokenUserId, notFound, unauthorized } from '@/lib/api-auth'
@@ -11,19 +11,19 @@ const updateSchema = z.object({
   isAktif: z.boolean().optional(),
 })
 
-export async function PUT(req: Request, { params }: { params: { id: string } }) {
+export async function PUT(req: NextRequest, context: any) {
   try {
     const token = await getApiToken()
     if (!token) return unauthorized()
 
-    const jadwal = await prisma.jadwalDokter.findUnique({ where: { id: params.id }, select: { dokterId: true } })
+    const jadwal = await prisma.jadwalDokter.findUnique({ where: { id: context.params.id }, select: { dokterId: true } })
     if (!jadwal) return notFound()
     if (token.role !== 'ADMIN' && token.role !== 'DOKTER') return forbidden()
     if (token.role === 'DOKTER' && getTokenUserId(token) !== jadwal.dokterId) return forbidden()
 
     const body = await req.json()
     const parsed = updateSchema.parse(body)
-    const updated = await prisma.jadwalDokter.update({ where: { id: params.id }, data: parsed })
+    const updated = await prisma.jadwalDokter.update({ where: { id: context.params.id }, data: parsed as any })
     return NextResponse.json(updated)
   } catch (error) {
     logError(error, { fileName: 'jadwal/[id]/route.ts', functionName: 'PUT' })
@@ -31,17 +31,17 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
   }
 }
 
-export async function DELETE(req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, context: any) {
   try {
     const token = await getApiToken()
     if (!token) return unauthorized()
 
-    const jadwal = await prisma.jadwalDokter.findUnique({ where: { id: params.id }, select: { dokterId: true } })
+    const jadwal = await prisma.jadwalDokter.findUnique({ where: { id: context.params.id }, select: { dokterId: true } })
     if (!jadwal) return notFound()
     if (token.role !== 'ADMIN' && token.role !== 'DOKTER') return forbidden()
     if (token.role === 'DOKTER' && getTokenUserId(token) !== jadwal.dokterId) return forbidden()
 
-    await prisma.jadwalDokter.delete({ where: { id: params.id } })
+    await prisma.jadwalDokter.delete({ where: { id: context.params.id } })
     return NextResponse.json({ message: 'Deleted' })
   } catch (error) {
     logError(error, { fileName: 'jadwal/[id]/route.ts', functionName: 'DELETE' })

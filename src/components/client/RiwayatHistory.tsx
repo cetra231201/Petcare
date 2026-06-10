@@ -15,10 +15,13 @@ type Appointment = {
 
 export default function RiwayatHistory() {
   const [statusFilter, setStatusFilter] = useState('')
-  const { data, isLoading, isError } = useQuery(['appointmentHistory'], async () => {
-    const res = await fetch('/api/appointment?limit=50')
-    if (!res.ok) throw new Error('Gagal mengambil riwayat appointment')
-    return res.json()
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ['appointmentHistory'],
+    queryFn: async () => {
+      const res = await fetch('/api/appointment?limit=50')
+      if (!res.ok) throw new Error('Gagal mengambil riwayat appointment')
+      return res.json()
+    },
   })
 
   if (isLoading) {

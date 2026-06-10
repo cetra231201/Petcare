@@ -10,10 +10,20 @@ interface InvoiceQueryResponse {
   data: Invoice[]
 }
 
-export const useInvoice = (status?: string): UseQueryResult<InvoiceQueryResponse, Error> => {
-  const queryKey = status ? [...INVOICE_KEY, status] : INVOICE_KEY
+interface UseInvoiceResult {
+  query: UseQueryResult<InvoiceQueryResponse, Error>
+  create: UseMutationResult<Invoice, Error, CreateInvoiceData>
+  update: UseMutationResult<Invoice, Error, { id: string; data: InvoiceUpdateInput }>
+  approve: UseMutationResult<Invoice, Error, string>
+  printInvoice: UseMutationResult<Invoice, Error, string>
+  voidInvoice: UseMutationResult<Invoice, Error, { id: string; voidReason: string }>
+}
 
-  return useQuery<InvoiceQueryResponse, Error>({
+export const useInvoice = (status?: string): UseInvoiceResult => {
+  const queryKey = status ? [...INVOICE_KEY, status] : INVOICE_KEY
+  const qc = useQueryClient()
+
+  const query = useQuery<InvoiceQueryResponse, Error>({
     queryKey,
     queryFn: async () => {
       const url = new URL('/api/invoice', window.location.href)
@@ -23,6 +33,65 @@ export const useInvoice = (status?: string): UseQueryResult<InvoiceQueryResponse
       return res.json()
     },
   })
+
+  const create = useMutation<Invoice, Error, CreateInvoiceData>({
+    mutationFn: async (data: CreateInvoiceData) => {
+      const res = await fetch('/api/invoice', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      })
+      if (!res.ok) throw new Error('Gagal membuat invoice')
+      return res.json()
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: INVOICE_KEY }),
+  })
+
+  const update = useMutation<Invoice, Error, { id: string; data: InvoiceUpdateInput }>({
+    mutationFn: async ({ id, data }) => {
+      const res = await fetch(`/api/invoice/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      })
+      if (!res.ok) throw new Error('Gagal memperbarui invoice')
+      return res.json()
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: INVOICE_KEY }),
+  })
+
+  const approve = useMutation<Invoice, Error, string>({
+    mutationFn: async (id: string) => {
+      const res = await fetch(`/api/invoice/${id}/approve`, { method: 'PUT' })
+      if (!res.ok) throw new Error('Gagal approve invoice')
+      return res.json()
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: INVOICE_KEY }),
+  })
+
+  const printInvoice = useMutation<Invoice, Error, string>({
+    mutationFn: async (id: string) => {
+      const res = await fetch(`/api/invoice/${id}/print`, { method: 'PUT' })
+      if (!res.ok) throw new Error('Gagal print invoice')
+      return res.json()
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: INVOICE_KEY }),
+  })
+
+  const voidInvoice = useMutation<Invoice, Error, { id: string; voidReason: string }>({
+    mutationFn: async ({ id, voidReason }) => {
+      const res = await fetch(`/api/invoice/${id}/void`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ voidReason }),
+      })
+      if (!res.ok) throw new Error('Gagal void invoice')
+      return res.json()
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: INVOICE_KEY }),
+  })
+
+  return { query, create, update, approve, printInvoice, voidInvoice }
 }
 
 interface CreateInvoiceData {

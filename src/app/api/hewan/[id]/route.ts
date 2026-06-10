@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
 import { forbidden, getApiToken, getTokenUserId, notFound, unauthorized } from '@/lib/api-auth'
@@ -13,12 +13,12 @@ const updateSchema = z.object({
   catatanKhusus: z.string().optional(),
 })
 
-export async function GET(req: Request, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, context: any) {
   try {
     const token = await getApiToken()
     if (!token) return unauthorized()
 
-    const { id } = params
+    const { id } = context.params
     const hewan = await prisma.hewan.findUnique({ where: { id } })
     if (!hewan) return notFound()
 
@@ -32,12 +32,12 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
   }
 }
 
-export async function PUT(req: Request, { params }: { params: { id: string } }) {
+export async function PUT(req: NextRequest, context: any) {
   try {
     const token = await getApiToken()
     if (!token) return unauthorized()
 
-    const { id } = params
+    const { id } = context.params
     const hewan = await prisma.hewan.findUnique({ where: { id }, select: { pelangganId: true } })
     if (!hewan) return notFound()
 
@@ -54,12 +54,12 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
   }
 }
 
-export async function DELETE(req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, context: any) {
   try {
     const token = await getApiToken()
     if (!token) return unauthorized()
 
-    const { id } = params
+    const { id } = context.params
     const hewan = await prisma.hewan.findUnique({ where: { id }, select: { pelangganId: true } })
     if (!hewan) return notFound()
 

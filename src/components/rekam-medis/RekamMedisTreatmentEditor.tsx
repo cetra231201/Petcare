@@ -1,11 +1,11 @@
 "use client"
 
 import { useState } from 'react'
-import useRekamMedis from '@/hooks/useRekamMedis'
+import { useUpdateRekamMedis } from '@/hooks/useRekamMedis'
 import { toast } from '@/components/shared/Toast'
 
 export default function RekamMedisTreatmentEditor({ record }: { record: any }) {
-  const { update } = useRekamMedis(record.hewanId)
+  const update = useUpdateRekamMedis()
   const [form, setForm] = useState({
     obat: record.obat || '',
     perawatan: record.perawatan || '',

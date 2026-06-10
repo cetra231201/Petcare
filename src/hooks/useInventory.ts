@@ -13,10 +13,23 @@ interface InventoryQueryResponse {
   }
 }
 
-export const useInventory = ({ all = false } = {}): UseQueryResult<InventoryQueryResponse, Error> => {
-  const key = ['inventory', all ? 'all' : 'page']
+interface AdjustInventoryParams {
+  id: string
+  adjustment: number
+  note?: string
+}
 
-  return useQuery<InventoryQueryResponse, Error>({
+export interface UseInventoryResult {
+  query: UseQueryResult<InventoryQueryResponse, Error>
+  create: UseMutationResult<Inventory, Error, InventoryCreateInput>
+  update: UseMutationResult<Inventory, Error, { id: string; data: InventoryUpdateInput }>
+  remove: UseMutationResult<void, Error, string>
+  adjust: UseMutationResult<Inventory, Error, AdjustInventoryParams>
+}
+
+export const useInventory = ({ all = false } = {}): UseInventoryResult => {
+  const key = ['inventory', all ? 'all' : 'page']
+  const query = useQuery<InventoryQueryResponse, Error>({
     queryKey: key,
     queryFn: async () => {
       const url = all ? '/api/inventory?all=true' : '/api/inventory'
@@ -25,13 +38,10 @@ export const useInventory = ({ all = false } = {}): UseQueryResult<InventoryQuer
       return res.json()
     },
   })
-}
 
-export const useCreateInventory = (): UseMutationResult<Inventory, Error, InventoryCreateInput> => {
   const qc = useQueryClient()
-  const key = ['inventory', 'page']
 
-  return useMutation<Inventory, Error, InventoryCreateInput>({
+  const create = useMutation<Inventory, Error, InventoryCreateInput>({
     mutationFn: async (data: InventoryCreateInput) => {
       const res = await fetch('/api/inventory', {
         method: 'POST',
@@ -43,13 +53,8 @@ export const useCreateInventory = (): UseMutationResult<Inventory, Error, Invent
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: key }),
   })
-}
 
-export const useUpdateInventory = (): UseMutationResult<Inventory, Error, { id: string; data: InventoryUpdateInput }> => {
-  const qc = useQueryClient()
-  const key = ['inventory', 'page']
-
-  return useMutation<Inventory, Error, { id: string; data: InventoryUpdateInput }>({
+  const update = useMutation<Inventory, Error, { id: string; data: InventoryUpdateInput }>({
     mutationFn: async ({ id, data }: { id: string; data: InventoryUpdateInput }) => {
       const res = await fetch(`/api/inventory/${id}`, {
         method: 'PUT',
@@ -61,13 +66,8 @@ export const useUpdateInventory = (): UseMutationResult<Inventory, Error, { id: 
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: key }),
   })
-}
 
-export const useDeleteInventory = (): UseMutationResult<void, Error, string> => {
-  const qc = useQueryClient()
-  const key = ['inventory', 'page']
-
-  return useMutation<void, Error, string>({
+  const remove = useMutation<void, Error, string>({
     mutationFn: async (id: string) => {
       const res = await fetch(`/api/inventory/${id}`, { method: 'DELETE' })
       if (!res.ok) throw new Error('Gagal hapus')
@@ -75,19 +75,8 @@ export const useDeleteInventory = (): UseMutationResult<void, Error, string> => 
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: key }),
   })
-}
 
-interface AdjustInventoryParams {
-  id: string
-  adjustment: number
-  note?: string
-}
-
-export const useAdjustInventory = (): UseMutationResult<Inventory, Error, AdjustInventoryParams> => {
-  const qc = useQueryClient()
-  const key = ['inventory', 'page']
-
-  return useMutation<Inventory, Error, AdjustInventoryParams>({
+  const adjust = useMutation<Inventory, Error, AdjustInventoryParams>({
     mutationFn: async ({ id, adjustment, note }) => {
       const res = await fetch(`/api/inventory/${id}/adjust`, {
         method: 'PUT',
@@ -105,6 +94,8 @@ export const useAdjustInventory = (): UseMutationResult<Inventory, Error, Adjust
       qc.invalidateQueries({ queryKey: ['inventory', 'movements'] })
     },
   })
+
+  return { query, create, update, remove, adjust }
 }
 
 export default useInventory

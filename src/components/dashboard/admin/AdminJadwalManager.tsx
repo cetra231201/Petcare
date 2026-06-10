@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import useDoctors from '@/hooks/useDoctors'
+import { useDoctors } from '@/hooks/useDoctors'
 import { toast } from '@/components/shared/Toast'
 
 type Jadwal = {
@@ -20,46 +20,52 @@ export default function AdminJadwalManager() {
   const queryClient = useQueryClient()
   const [form, setForm] = useState({ dokterId: '', hari: '', jamMulai: '', jamSelesai: '', isAktif: true })
   const { data: doctorData, isLoading: isDoctorsLoading } = useDoctors()
-  const { data, isLoading, isError } = useQuery(['adminJadwal'], async () => {
-    const res = await fetch('/api/jadwal')
-    if (!res.ok) throw new Error('Gagal memuat jadwal')
-    return res.json()
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ['adminJadwal'],
+    queryFn: async () => {
+      const res = await fetch('/api/jadwal')
+      if (!res.ok) throw new Error('Gagal memuat jadwal')
+      return res.json()
+    },
   })
 
-  const createSchedule = useMutation(async () => {
-    const res = await fetch('/api/jadwal', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(form),
-    })
-    if (!res.ok) throw new Error('Gagal menambahkan jadwal')
-    return res.json()
-  }, {
+  const createSchedule = useMutation({
+    mutationFn: async () => {
+      const res = await fetch('/api/jadwal', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
+      })
+      if (!res.ok) throw new Error('Gagal menambahkan jadwal')
+      return res.json()
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries(['adminJadwal'])
+      queryClient.invalidateQueries({ queryKey: ['adminJadwal'] })
       setForm({ dokterId: '', hari: '', jamMulai: '', jamSelesai: '', isAktif: true })
       toast('Jadwal dokter berhasil ditambahkan')
     },
   })
 
-  const toggleSchedule = useMutation(async ({ id, isAktif }: { id: string; isAktif: boolean }) => {
-    const res = await fetch(`/api/jadwal/${id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ isAktif }),
-    })
-    if (!res.ok) throw new Error('Gagal memperbarui jadwal')
-    return res.json()
-  }, {
-    onSuccess: () => queryClient.invalidateQueries(['adminJadwal']),
+  const toggleSchedule = useMutation({
+    mutationFn: async ({ id, isAktif }: { id: string; isAktif: boolean }) => {
+      const res = await fetch(`/api/jadwal/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isAktif }),
+      })
+      if (!res.ok) throw new Error('Gagal memperbarui jadwal')
+      return res.json()
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['adminJadwal'] }),
   })
 
-  const deleteSchedule = useMutation(async (id: string) => {
-    const res = await fetch(`/api/jadwal/${id}`, { method: 'DELETE' })
-    if (!res.ok) throw new Error('Gagal menghapus jadwal')
-    return res.json()
-  }, {
-    onSuccess: () => queryClient.invalidateQueries(['adminJadwal']),
+  const deleteSchedule = useMutation({
+    mutationFn: async (id: string) => {
+      const res = await fetch(`/api/jadwal/${id}`, { method: 'DELETE' })
+      if (!res.ok) throw new Error('Gagal menghapus jadwal')
+      return res.json()
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['adminJadwal'] }),
   })
 
   if (isLoading || isDoctorsLoading) return <div className="rounded-xl bg-white p-4 shadow-sm border border-slate-100 text-slate-500">Memuat jadwal dokter...</div>
@@ -115,11 +121,11 @@ export default function AdminJadwalManager() {
           </label>
           <button
             type="button"
-            disabled={!canSubmit || createSchedule.isLoading}
+            disabled={!canSubmit || createSchedule.isPending}
             onClick={() => createSchedule.mutate()}
             className="rounded-lg bg-teal-600 px-4 py-2 text-white disabled:opacity-50"
           >
-            {createSchedule.isLoading ? 'Menyimpan...' : 'Simpan Jadwal'}
+            {createSchedule.isPending ? 'Menyimpan...' : 'Simpan Jadwal'}
           </button>
         </div>
       </div>

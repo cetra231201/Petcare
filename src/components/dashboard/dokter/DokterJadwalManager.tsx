@@ -16,46 +16,52 @@ export default function DokterJadwalManager({ dokterId }: { dokterId: string }) 
   const queryClient = useQueryClient()
   const [form, setForm] = useState({ hari: '', jamMulai: '', jamSelesai: '', isAktif: true })
 
-  const { data, isLoading, isError } = useQuery(['dokterJadwal', dokterId], async () => {
-    const res = await fetch(`/api/jadwal?dokterId=${dokterId}`)
-    if (!res.ok) throw new Error('Gagal memuat jadwal')
-    return res.json()
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ['dokterJadwal', dokterId],
+    queryFn: async () => {
+      const res = await fetch(`/api/jadwal?dokterId=${dokterId}`)
+      if (!res.ok) throw new Error('Gagal memuat jadwal')
+      return res.json()
+    },
   })
 
-  const createSchedule = useMutation(async () => {
-    const res = await fetch('/api/jadwal', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ dokterId, ...form }),
-    })
-    if (!res.ok) throw new Error('Gagal menyimpan jadwal')
-    return res.json()
-  }, {
+  const createSchedule = useMutation({
+    mutationFn: async () => {
+      const res = await fetch('/api/jadwal', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ dokterId, ...form }),
+      })
+      if (!res.ok) throw new Error('Gagal menyimpan jadwal')
+      return res.json()
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries(['dokterJadwal', dokterId])
+      queryClient.invalidateQueries({ queryKey: ['dokterJadwal', dokterId] })
       setForm({ hari: '', jamMulai: '', jamSelesai: '', isAktif: true })
       toast('Jadwal baru berhasil ditambahkan')
     },
   })
 
-  const toggleSchedule = useMutation(async ({ id, isAktif }: { id: string; isAktif: boolean }) => {
-    const res = await fetch(`/api/jadwal/${id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ isAktif }),
-    })
-    if (!res.ok) throw new Error('Gagal memperbarui jadwal')
-    return res.json()
-  }, {
-    onSuccess: () => queryClient.invalidateQueries(['dokterJadwal', dokterId]),
+  const toggleSchedule = useMutation({
+    mutationFn: async ({ id, isAktif }: { id: string; isAktif: boolean }) => {
+      const res = await fetch(`/api/jadwal/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isAktif }),
+      })
+      if (!res.ok) throw new Error('Gagal memperbarui jadwal')
+      return res.json()
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['dokterJadwal', dokterId] }),
   })
 
-  const deleteSchedule = useMutation(async (id: string) => {
-    const res = await fetch(`/api/jadwal/${id}`, { method: 'DELETE' })
-    if (!res.ok) throw new Error('Gagal menghapus jadwal')
-    return res.json()
-  }, {
-    onSuccess: () => queryClient.invalidateQueries(['dokterJadwal', dokterId]),
+  const deleteSchedule = useMutation({
+    mutationFn: async (id: string) => {
+      const res = await fetch(`/api/jadwal/${id}`, { method: 'DELETE' })
+      if (!res.ok) throw new Error('Gagal menghapus jadwal')
+      return res.json()
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['dokterJadwal', dokterId] }),
   })
 
   if (isLoading) return <div className="rounded-xl bg-white p-4 shadow-sm border border-slate-100 text-slate-500">Memuat jadwal...</div>
@@ -101,10 +107,10 @@ export default function DokterJadwalManager({ dokterId }: { dokterId: string }) 
           <button
             type="button"
             onClick={() => createSchedule.mutate()}
-            disabled={!canSubmit || createSchedule.isLoading}
+            disabled={!canSubmit || createSchedule.isPending}
             className="rounded-lg bg-teal-600 px-4 py-2 text-white disabled:opacity-50"
           >
-            {createSchedule.isLoading ? 'Menyimpan...' : 'Simpan Jadwal'}
+            {createSchedule.isPending ? 'Menyimpan...' : 'Simpan Jadwal'}
           </button>
         </div>
       </div>

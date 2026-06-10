@@ -11,7 +11,7 @@ export default function AdminInventoryPage() {
   const { query, create, update, remove } = useInventory()
   const items = (query.data as { data: any[] } | undefined)?.data || []
   const [deleteTarget, setDeleteTarget] = useState<any | null>(null)
-  const { register, handleSubmit, reset, formState: { errors } } = useForm({
+  const { register, handleSubmit, reset, formState: { errors } } = useForm<InventoryInput>({
     resolver: zodResolver(inventorySchema),
     defaultValues: { namaItem: '', kategori: 'OBAT', stok: 0, satuan: '', harga: 0, stokMinimal: 0 },
   })

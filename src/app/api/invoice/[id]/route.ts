@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { Prisma } from '@prisma/client'
 import { z } from 'zod'
@@ -17,14 +17,14 @@ const updateSchema = z.object({
   })).optional(),
 })
 
-export async function GET(req: Request, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, context: any) {
   try {
-    const token = await getCurrentUserWithRole(req)
+    const token = await getCurrentUserWithRole()
     if (!token) return unauthorized()
     if (token.role !== 'ADMIN' && token.role !== 'STAFF') return forbidden()
 
     const invoice = await prisma.invoice.findUnique({
-      where: { id: params.id },
+      where: { id: context.params.id },
       include: { customer: true, hewan: true, approvedBy: true, printedBy: true, items: true },
     })
     if (!invoice) return notFound()
@@ -36,13 +36,13 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
   }
 }
 
-export async function PUT(req: Request, { params }: { params: { id: string } }) {
+export async function PUT(req: NextRequest, context: any) {
   try {
-    const token = await getCurrentUserWithRole(req)
+    const token = await getCurrentUserWithRole()
     if (!token) return unauthorized()
     if (token.role !== 'ADMIN' && token.role !== 'STAFF') return forbidden()
 
-    const invoice = await prisma.invoice.findUnique({ where: { id: params.id }, select: { status: true } })
+    const invoice = await prisma.invoice.findUnique({ where: { id: context.params.id }, select: { status: true } })
     if (!invoice) return notFound()
     if (invoice.status === 'PRINTED' || invoice.status === 'VOID') return forbidden('Invoice locked after printing or void')
 
@@ -50,8 +50,8 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
     const parsed = updateSchema.parse(body)
     const data: Prisma.InvoiceUpdateInput = {}
 
-    if (parsed.customerId) data.customerId = parsed.customerId
-    if (parsed.hewanId !== undefined) data.hewanId = parsed.hewanId
+    if (parsed.customerId) data.customer = { connect: { id: parsed.customerId } }
+    if (parsed.hewanId !== undefined) data.hewan = { connect: { id: parsed.hewanId } }
     if (parsed.status) data.status = parsed.status
 
     if (parsed.items) {
@@ -70,7 +70,7 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
     }
 
     const updated = await prisma.invoice.update({
-      where: { id: params.id },
+      where: { id: context.params.id },
       data,
       include: { items: true },
     })

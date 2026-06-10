@@ -1,15 +1,8 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { z } from 'zod'
 import { forbidden, getApiToken, getTokenUserId, unauthorized } from '@/lib/api-auth'
 import { logError } from '@/lib/error-logging'
-
-const broadcastSchema = z.object({
-  target: z.string(),
-  judul: z.string(),
-  isi: z.string(),
-  tipe: z.enum(['INFO', 'PERINGATAN', 'SUKSES']),
-})
+import { notificationBroadcastSchema } from '@/lib/validation/schemas'
 
 export async function GET(req: Request) {
   try {
@@ -37,7 +30,7 @@ export async function POST(req: Request) {
     if (token.role !== 'ADMIN') return forbidden()
 
     const body = await req.json()
-    const parsed = broadcastSchema.parse(body)
+    const parsed = notificationBroadcastSchema.parse(body)
     // simple broadcast to all users for demo
     const users = await prisma.user.findMany()
     const creates = users.map((u) => ({ userId: u.id, judul: parsed.judul, isi: parsed.isi, tipe: parsed.tipe }))

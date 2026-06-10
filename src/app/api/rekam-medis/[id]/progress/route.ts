@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
 import { forbidden, getApiToken, getTokenUserId, notFound, unauthorized } from '@/lib/api-auth'
@@ -11,12 +11,12 @@ const progressSchema = z.object({
   catatan: z.string().optional(),
 })
 
-export async function GET(req: Request, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, context: any) {
   try {
     const token = await getApiToken()
     if (!token) return unauthorized()
 
-    const { id } = params
+    const { id } = context.params
     const rekam = await prisma.rekamMedis.findUnique({ where: { id }, select: { hewan: { select: { pelangganId: true } }, dokterId: true } })
     if (!rekam) return notFound()
 
@@ -31,13 +31,13 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
   }
 }
 
-export async function POST(req: Request, { params }: { params: { id: string } }) {
+export async function POST(req: NextRequest, context: any) {
   try {
     const token = await getApiToken()
     if (!token) return unauthorized()
     if (token.role !== 'ADMIN' && token.role !== 'DOKTER') return forbidden()
 
-    const { id } = params
+    const { id } = context.params
     const rekam = await prisma.rekamMedis.findUnique({ where: { id }, select: { hewan: { select: { pelangganId: true } }, dokterId: true } })
     if (!rekam) return notFound()
     if (token.role === 'DOKTER' && rekam.dokterId !== getTokenUserId(token)) return forbidden()

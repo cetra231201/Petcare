@@ -1,20 +1,11 @@
 import { NextResponse } from 'next/server'
+import { ZodError } from 'zod'
 import { prisma } from '@/lib/prisma'
-import { z } from 'zod'
 import { checkRateLimit } from '@/lib/rate-limit'
 import { forbidden, getApiToken, getTokenUserId, unauthorized } from '@/lib/api-auth'
 import { logError } from '@/lib/error-logging'
+import { appointmentCreateSchema } from '@/lib/validation/schemas'
 import type { ApiPaginatedResponse, AppointmentCreateInput } from '@/types'
-
-const createSchema = z.object({
-  pelangganId: z.string().optional(),
-  hewanId: z.string(),
-  dokterId: z.string().optional(),
-  tanggal: z.string(),
-  waktu: z.string(),
-  jenis: z.enum(['PEMERIKSAAN', 'VAKSINASI', 'BEDAH', 'GROOMING', 'DENTAL', 'RAWAT_INAP', 'TELEMEDICINE', 'HOME_VISIT']),
-  keluhan: z.string().optional(),
-})
 
 interface AppointmentWhereClause {
   pelangganId?: string
@@ -91,30 +82,58 @@ export async function POST(req: Request): Promise<NextResponse> {
     if (token.role !== 'CLIENT' && token.role !== 'ADMIN') return forbidden()
 
     const body = await req.json()
-    const parsed = createSchema.parse(body)
+    const parsed = appointmentCreateSchema.parse(body)
     const userId = getTokenUserId(token)
-    if (!parsed.pelangganId || token.role === 'CLIENT') parsed.pelangganId = userId
-    if (!parsed.pelangganId) return NextResponse.json({ message: 'pelangganId is required' }, { status: 400 })
+
+    if (!parsed.pelangganId || token.role === 'CLIENT') {
+      parsed.pelangganId = userId
+    }
+    if (!parsed.pelangganId) {
+      return NextResponse.json({ message: 'pelangganId is required' }, { status: 400 })
+    }
     if (token.role === 'CLIENT' && parsed.pelangganId !== userId) return forbidden()
+
+    const hewan = await prisma.hewan.findUnique({ where: { id: parsed.hewanId }, select: { pelangganId: true } })
+    if (!hewan) return NextResponse.json({ message: 'Hewan tidak ditemukan' }, { status: 404 })
+    if (hewan.pelangganId !== parsed.pelangganId) return NextResponse.json({ message: 'Hewan tidak sesuai dengan pelanggan', status: 400 })
+
+    const dokter = await prisma.user.findUnique({ where: { id: parsed.dokterId } })
+    if (!dokter || dokter.role !== 'DOKTER') {
+      return NextResponse.json({ message: 'Dokter tidak valid' }, { status: 400 })
+    }
+
+    const conflict = await prisma.appointment.findFirst({
+      where: {
+        tanggal: parsed.tanggal,
+        waktu: parsed.waktu,
+        OR: [{ dokterId: parsed.dokterId }, { hewanId: parsed.hewanId }],
+      },
+    })
+    if (conflict) {
+      return NextResponse.json(
+        { message: 'Jadwal bentrok: dokter atau pasien sudah memiliki janji pada waktu ini.' },
+        { status: 409 },
+      )
+    }
 
     const appointmentData: AppointmentCreateInput = {
       pelangganId: parsed.pelangganId,
       hewanId: parsed.hewanId,
-      dokterId: parsed.dokterId ?? null,
-      tanggal: new Date(parsed.tanggal),
+      dokterId: parsed.dokterId,
+      tanggal: parsed.tanggal,
       waktu: parsed.waktu,
       jenis: parsed.jenis,
       keluhan: parsed.keluhan ?? null,
     }
 
-    const created = await prisma.appointment.create({ data: appointmentData })
+    const created = await prisma.appointment.create({ data: appointmentData as any })
     return NextResponse.json(created, { status: 201 })
   } catch (error) {
     logError(error, {
       fileName: 'appointment/route.ts',
       functionName: 'POST',
     })
-    if (error instanceof z.ZodError) {
+    if (error instanceof ZodError) {
       return NextResponse.json({ message: 'Invalid input', details: error.errors }, { status: 400 })
     }
     const errorMessage = error instanceof Error ? error.message : 'Failed to create appointment'

@@ -1,9 +1,9 @@
 'use client'
 
 import React from 'react'
-import { useForm, FieldError } from 'react-hook-form'
+import { useForm, FieldError, type Resolver } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { hewanSchema } from '@/lib/schemas'
+import { hewanSchema, type HewanInput } from '@/lib/schemas'
 import type { HewanCreateInput, HewanUpdateInput } from '@/types'
 
 type HewanFormData = HewanCreateInput | HewanUpdateInput
@@ -18,13 +18,31 @@ function getErrorMessage(error: FieldError | undefined): string {
 }
 
 export default function HewanForm({ onSubmit, defaultValues }: HewanFormProps): React.ReactElement {
-  const { register, handleSubmit, formState: { errors } } = useForm<HewanFormData>({
-    defaultValues,
-    resolver: zodResolver(hewanSchema),
+  const normalizedDefaultValues = defaultValues
+    ? {
+        ...defaultValues,
+        ras: defaultValues.ras ?? undefined,
+        tanggalLahir:
+          defaultValues.tanggalLahir instanceof Date
+            ? defaultValues.tanggalLahir.toISOString().split('T')[0]
+            : defaultValues.tanggalLahir ?? undefined,
+        beratBadan: defaultValues.beratBadan ?? undefined,
+        foto: defaultValues.foto ?? undefined,
+        catatanKhusus: defaultValues.catatanKhusus ?? undefined,
+      }
+    : undefined
+
+  const { register, handleSubmit, formState: { errors } } = useForm<HewanInput>({
+    defaultValues: normalizedDefaultValues as Partial<HewanInput> | undefined,
+    resolver: zodResolver(hewanSchema) as Resolver<HewanInput>,
   })
 
+  const handleFormSubmit = (values: any) => {
+    onSubmit(values as HewanFormData)
+  }
+
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
+    <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-3">
       <div>
         <label className="block text-sm">Nama</label>
         <input {...register('nama')} className="w-full border p-2 rounded" />

@@ -1,13 +1,13 @@
 "use client"
-import React, { useMemo, useState } from 'react'
-import { useMemo } from 'react'
+import React, { useMemo } from 'react'
 import { useSession } from 'next-auth/react'
-import useRekamMedis from '@/hooks/useRekamMedis'
+import useRekamMedis, { useDownloadRekamMedisPdf } from '@/hooks/useRekamMedis'
 import useSSE from '@/hooks/useSSE'
 import { toast } from '@/components/shared/Toast'
 
 export default function RekamMedisClient({ hewanId }: { hewanId: string }) {
-  const { query, downloadPdf } = useRekamMedis(hewanId)
+  const query = useRekamMedis(hewanId)
+  const downloadPdf = useDownloadRekamMedisPdf()
   const { data: session } = useSession()
   const userId = (session?.user as any)?.id
   const role = (session?.user as any)?.role

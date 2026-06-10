@@ -83,7 +83,7 @@ export async function POST(req: Request): Promise<NextResponse> {
       pelangganId: parsed.pelangganId,
     }
 
-    const created = await prisma.hewan.create({ data: createData })
+    const created = await prisma.hewan.create({ data: createData as any })
     return NextResponse.json(created, { status: 201 })
   } catch (error) {
     logError(error, {

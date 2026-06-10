@@ -9,5 +9,5 @@ export default async function DashboardRootPage() {
   if (role === 'ADMIN') redirect('/dashboard/admin')
   if (role === 'DOKTER') redirect('/dashboard/dokter')
   if (role === 'STAFF') redirect('/dashboard/staff')
-  redirect('/dashboard/pelanggan')
+  redirect('/dashboard/client')
 }

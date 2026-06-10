@@ -1,6 +1,6 @@
 import { auth } from '@/auth'
 import { redirect } from 'next/navigation'
-import ProfilEditor from '@/components/pelanggan/ProfilEditor'
+import ProfilEditor from '@/components/client/ProfilEditor'
 
 export default async function PelangganProfilPage() {
   const session = await auth()

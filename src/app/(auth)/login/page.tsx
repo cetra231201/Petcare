@@ -23,9 +23,10 @@ export default function LoginPage() {
   const { register, handleSubmit, formState } = useForm<FormData>({ resolver: zodResolver(schema) })
 
   useEffect(() => {
-    if (session?.user?.role) {
-      const role = session.user.role
-      const dest = role === 'ADMIN' ? '/dashboard/admin' : role === 'DOKTER' ? '/dashboard/dokter' : role === 'STAFF' ? '/dashboard/staff' : '/dashboard/pelanggan'
+    const user = session?.user as any
+    if (user?.role) {
+      const role = user.role
+      const dest = role === 'ADMIN' ? '/dashboard/admin' : role === 'DOKTER' ? '/dashboard/dokter' : role === 'STAFF' ? '/dashboard/staff' : '/dashboard/client'
       router.replace(dest)
     }
   }, [router, session])

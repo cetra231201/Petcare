@@ -4,7 +4,7 @@ import React from 'react'
 import Link from 'next/link'
 import { useSession } from 'next-auth/react'
 import { useHewan, useCreateHewan } from '@/hooks/useHewan'
-import HewanForm from '@/components/pelanggan/HewanForm'
+import HewanForm from '@/components/client/HewanForm'
 import { toast } from '@/components/shared/Toast'
 
 export default function HewanPage() {
@@ -38,8 +38,8 @@ export default function HewanPage() {
               <div className="text-lg font-medium">{h.nama}</div>
               <div className="text-sm text-gray-500">{h.jenis} • {h.ras || '-'}</div>
               <div className="mt-3 space-x-2">
-                <Link href={`/dashboard/pelanggan/hewan/${h.id}`} className="text-teal-600 hover:underline">Detail</Link>
-                <Link href={`/dashboard/pelanggan/hewan/${h.id}/rekam-medis`} className="text-teal-600 hover:underline">Rekam Medis</Link>
+                <Link href={`/dashboard/client/hewan/${h.id}`} className="text-teal-600 hover:underline">Detail</Link>
+                <Link href={`/dashboard/client/hewan/${h.id}/rekam-medis`} className="text-teal-600 hover:underline">Rekam Medis</Link>
               </div>
             </div>
           ))

@@ -14,22 +14,26 @@ type Appointment = {
 
 export default function DokterAntrianManager({ dokterId }: { dokterId: string }) {
   const queryClient = useQueryClient()
-  const { data, isLoading, isError } = useQuery(['dokterAntrian', dokterId], async () => {
-    const res = await fetch(`/api/appointment?dokterId=${dokterId}&limit=20`)
-    if (!res.ok) throw new Error('Gagal memuat antrian')
-    return res.json()
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ['dokterAntrian', dokterId],
+    queryFn: async () => {
+      const res = await fetch(`/api/appointment?dokterId=${dokterId}`)
+      if (!res.ok) throw new Error('Gagal memuat antrian')
+      return res.json()
+    },
   })
 
-  const updateStatus = useMutation(async ({ id, status }: { id: string; status: string }) => {
-    const res = await fetch(`/api/appointment/${id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status }),
-    })
-    if (!res.ok) throw new Error('Gagal memperbarui status')
-    return res.json()
-  }, {
-    onSuccess: () => queryClient.invalidateQueries(['dokterAntrian', dokterId]),
+  const updateStatus = useMutation({
+    mutationFn: async ({ id, status }: { id: string; status: string }) => {
+      const res = await fetch(`/api/appointment/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status }),
+      })
+      if (!res.ok) throw new Error('Gagal memperbarui status')
+      return res.json()
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['dokterAntrian', dokterId] }),
   })
 
   if (isLoading) return <div className="rounded-xl bg-white p-4 shadow-sm border border-slate-100 text-slate-500">Memuat antrian...</div>

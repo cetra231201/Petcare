@@ -3,7 +3,7 @@
 import React from 'react'
 import { useForm, FieldError } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { appointmentSchema } from '@/lib/schemas'
+import { appointmentSchema, type AppointmentInput } from '@/lib/schemas'
 import type { User, Hewan, AppointmentCreateInput } from '@/types'
 
 interface AppointmentFormProps {
@@ -17,12 +17,19 @@ function getErrorMessage(error: FieldError | undefined): string {
 }
 
 export default function AppointmentForm({ onSubmit, doctors, pets }: AppointmentFormProps): React.ReactElement {
-  const { register, handleSubmit, formState: { errors } } = useForm<AppointmentCreateInput>({
+  const { register, handleSubmit, formState: { errors } } = useForm<AppointmentInput>({
     resolver: zodResolver(appointmentSchema),
   })
 
+  const handleFormSubmit = (values: AppointmentInput) => {
+    onSubmit({
+      ...values,
+      tanggal: new Date(values.tanggal),
+    })
+  }
+
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
+    <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-3">
       <div>
         <label className="block text-sm">Pilih Hewan</label>
         <select {...register('hewanId')} className="w-full border p-2 rounded">

@@ -11,10 +11,6 @@ const nextConfig = {
       { protocol: 'https', hostname: 'images.petcare.example.com' },
     ],
   },
-  experimental: {
-    serverComponentsExternalPackages: ['@prisma/client', 'bcryptjs'],
-    optimizePackageImports: ['lucide-react', '@react-pdf/renderer'],
-  },
   async headers() {
     return [
       {

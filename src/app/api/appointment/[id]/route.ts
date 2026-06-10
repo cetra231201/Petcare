@@ -1,17 +1,17 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { z } from 'zod'
 import { assertRole, forbidden, getApiToken, getTokenUserId, notFound, unauthorized } from '@/lib/api-auth'
 import { logError } from '@/lib/error-logging'
+import { appointmentUpdateSchema } from '@/lib/validation/schemas'
 
-const updateSchema = z.object({ dokterId: z.string().nullable().optional(), status: z.string().optional(), catatanAdmin: z.string().optional() })
+const updateSchema = appointmentUpdateSchema
 
-export async function GET(req: Request, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, context: any) {
   try {
     const token = await getApiToken()
     if (!token) return unauthorized()
 
-    const { id } = params
+    const { id } = context.params
     const item = await prisma.appointment.findUnique({ 
       where: { id },
       include: {
@@ -34,9 +34,9 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
   }
 }
 
-export async function PUT(req: Request, { params }: { params: { id: string } }) {
+export async function PUT(req: NextRequest, context: any) {
   try {
-    const { id } = params
+    const { id } = context.params
     const token = await getApiToken()
     if (!token) return unauthorized()
 
@@ -44,7 +44,7 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
     if (!item) return notFound()
 
     const body = await req.json()
-    const parsed = updateSchema.parse(body)
+    const parsed = updateSchema.parse(body) as any
     const userId = getTokenUserId(token)
     if (!assertRole(token, ['ADMIN', 'STAFF', 'DOKTER'])) return forbidden()
     if (token.role === 'DOKTER' && item.dokterId !== userId && item.dokterId !== null) return forbidden()
@@ -64,9 +64,9 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
   }
 }
 
-export async function DELETE(req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, context: any) {
   try {
-    const { id } = params
+    const { id } = context.params
     const token = await getApiToken()
     if (!token) return unauthorized()
 

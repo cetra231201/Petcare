@@ -1,5 +1,5 @@
 import React from 'react'
-import Chat from '@/components/pelanggan/Chat'
+import Chat from '@/components/client/Chat'
 import { auth } from '@/auth'
 
 export default async function KonsultasiPage() {

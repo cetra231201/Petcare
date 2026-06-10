@@ -1,21 +1,21 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { forbidden, getCurrentUserWithRole, notFound, unauthorized } from '@/lib/api-auth'
 import { logError } from '@/lib/error-logging'
 
-export async function PUT(req: Request, { params }: { params: { id: string } }) {
+export async function PUT(req: NextRequest, context: any) {
   try {
-    const token = await getCurrentUserWithRole(req)
+    const token = await getCurrentUserWithRole()
     if (!token) return unauthorized()
     if (token.role !== 'ADMIN') return forbidden()
 
-    const invoice = await prisma.invoice.findUnique({ where: { id: params.id }, select: { status: true, items: { select: { inventoryId: true, quantity: true, namaItem: true } } } })
+    const invoice = await prisma.invoice.findUnique({ where: { id: context.params.id }, select: { status: true, items: { select: { inventoryId: true, quantity: true, namaItem: true } } } })
     if (!invoice) return notFound()
     if (invoice.status === 'APPROVED' || invoice.status === 'PRINTED' || invoice.status === 'VOID') {
       return NextResponse.json({ message: 'Invoice cannot be approved' }, { status: 400 })
     }
 
-    const updated = await prisma.$transaction(async (tx) => {
+    const updated = await (prisma.$transaction as any)(async (tx: any) => {
       for (const item of invoice.items) {
         if (!item.inventoryId) continue
 
@@ -37,13 +37,13 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
             quantity: item.quantity,
             beforeStock: inventory.stok,
             afterStock,
-            note: `Sale from invoice ${params.id}`,
+            note: `Sale from invoice ${context.params.id}`,
           },
         })
       }
 
       return tx.invoice.update({
-        where: { id: params.id },
+        where: { id: context.params.id },
         data: { status: 'APPROVED', approvedAt: new Date(), approvedById: token.id },
         include: { customer: true, hewan: true, approvedBy: true, printedBy: true, items: true },
       })

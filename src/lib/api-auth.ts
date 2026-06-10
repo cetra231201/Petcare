@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server'
-import { auth } from '@/auth'
 import type { ApiToken, ApiRole, CurrentUser, CurrentUserWithName } from '@/types'
 import { logError } from './error-logging'
 
@@ -7,6 +6,7 @@ export const API_ROLES = ['ADMIN', 'STAFF', 'DOKTER', 'CLIENT'] as const
 
 export async function getApiToken(): Promise<ApiToken | null> {
   try {
+    const { auth } = await import('@/auth')
     const session = await auth()
     if (!session?.user) return null
 
@@ -36,13 +36,13 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
   return {
     id: token.id,
     role: token.role,
-    email: token.email,
+    email: token.email as string,
   }
 }
 
 export async function getCurrentUserWithRole(): Promise<CurrentUserWithName | null> {
   const token = await getApiToken()
-  if (!token || !token.id || !token.role) return null
+  if (!token || !token.id || !token.role || !token.email) return null
   return {
     id: getTokenUserId(token),
     role: token.role,

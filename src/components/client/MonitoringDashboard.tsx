@@ -54,19 +54,18 @@ export default function MonitoringDashboard({ initialHewan, userId }: Props) {
   useSSE(userId, (payload) => {
     if (!payload || typeof payload !== 'object') return
 
-    const data = payload as { type?: string; rekamMedisId?: string; item?: ProgressItem; updated?: any }
+    const data = payload as { type?: string; rekamMedisId?: string; id?: string; item?: ProgressItem; updated?: any }
     if (data.type === 'rekam-medis-progress' && data.rekamMedisId && data.item) {
       setHewanList((previous) =>
         previous.map((hewan) => ({
           ...hewan,
-          RekamMedis: hewan.RekamMedis.map((record) =>
-            record.id === data.rekamMedisId
-              ? {
-                  ...record,
-                  progress: record.progress ? [data.item, ...record.progress] : [data.item],
-                }
-              : record,
-          ),
+          RekamMedis: hewan.RekamMedis.map((record) => {
+            if (record.id !== data.rekamMedisId) return record
+            return {
+              ...record,
+              progress: record.progress ? [data.item, ...record.progress] : [data.item],
+            } as RekamMedisItem
+          }),
         })),
       )
       toast('Progress harian baru diterima untuk salah satu treatment Anda.')
@@ -96,7 +95,7 @@ export default function MonitoringDashboard({ initialHewan, userId }: Props) {
               <div className="text-xl font-semibold text-slate-900">{hewan.nama}</div>
               <div className="text-sm text-slate-500">Jenis: {hewan.jenis || 'Tidak tersedia'}</div>
             </div>
-            <Link href={`/dashboard/pelanggan/hewan/${hewan.id}/rekam-medis`} className="rounded-2xl border border-teal-600 bg-teal-50 px-4 py-2 text-sm font-medium text-teal-700 hover:bg-teal-100">
+            <Link href={`/dashboard/client/hewan/${hewan.id}/rekam-medis`} className="rounded-2xl border border-teal-600 bg-teal-50 px-4 py-2 text-sm font-medium text-teal-700 hover:bg-teal-100">
               Lihat detail rekam medis
             </Link>
           </div>

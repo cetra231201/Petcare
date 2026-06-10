@@ -18,7 +18,7 @@ export default auth((req) => {
     }
 
     const role = normalizeRole((req.auth.user as any)?.role as string | undefined)
-    if (pathname.startsWith('/dashboard/pelanggan') && role !== 'CLIENT') {
+    if (pathname.startsWith('/dashboard/client') && role !== 'CLIENT') {
       return NextResponse.redirect(new URL('/dashboard', req.url))
     }
     if (pathname.startsWith('/dashboard/dokter') && role !== 'DOKTER') {
@@ -34,7 +34,7 @@ export default auth((req) => {
 
   if (pathname === LOGIN_PATH && req.auth) {
     const role = normalizeRole((req.auth.user as any)?.role as string | undefined)
-    const dest = role === 'ADMIN' ? '/dashboard/admin' : role === 'DOKTER' ? '/dashboard/dokter' : role === 'STAFF' ? '/dashboard/staff' : '/dashboard/pelanggan'
+    const dest = role === 'ADMIN' ? '/dashboard/admin' : role === 'DOKTER' ? '/dashboard/dokter' : role === 'STAFF' ? '/dashboard/staff' : '/dashboard/client'
     return NextResponse.redirect(new URL(dest, req.url))
   }
 

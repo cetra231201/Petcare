@@ -46,7 +46,7 @@ export async function sendAppointmentReminder(to: string, appointment: Appointme
       title: 'Pengingat Janji Temu',
       subtitle: 'Jangan lupa jadwal pemeriksaan Anda.',
       body: renderAppointmentDetails(appointment),
-      cta: { label: 'Lihat Dashboard', href: `${baseUrl()}/dashboard/pelanggan` },
+      cta: { label: 'Lihat Dashboard', href: `${baseUrl()}/dashboard/client` },
     }),
   })
 }

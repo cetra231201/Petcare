@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { Prisma } from '@prisma/client'
 import { z } from 'zod'
 import { forbidden, getApiToken, unauthorized } from '@/lib/api-auth'
 import { logError } from '@/lib/error-logging'
@@ -16,11 +17,11 @@ export async function GET(req: Request) {
     const type = url.searchParams.get('type') || 'monthly'
 
     // simple aggregation: count appointments by status
-    const where: Record<string, unknown> = {}
-    if (from) where['createdAt'] = { gte: new Date(from) }
-    if (to) where['createdAt'] = { ...(where['createdAt'] as Record<string, unknown> | undefined), lte: new Date(to) }
+    const where: Prisma.AppointmentWhereInput = {}
+    if (from) where.createdAt = { gte: new Date(from) }
+    if (to) where.createdAt = { ...(where.createdAt as Prisma.DateTimeFilter | undefined), lte: new Date(to) }
 
-    const counts = await prisma.appointment.groupBy({
+    const counts = await (prisma.appointment.groupBy as any)({
       by: ['status'],
       where,
       _count: { status: true },

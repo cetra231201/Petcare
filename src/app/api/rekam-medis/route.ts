@@ -1,25 +1,10 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { z } from 'zod'
 import { forbidden, getApiToken, getTokenUserId, notFound, unauthorized } from '@/lib/api-auth'
 import { logError } from '@/lib/error-logging'
+import { rekamMedisCreateSchema } from '@/lib/validation/schemas'
 
-const createSchema = z.object({
-  appointmentId: z.string(),
-  hewanId: z.string(),
-  dokterId: z.string(),
-  tanggalPeriksa: z.string(),
-  keluhan: z.string().optional(),
-  diagnosis: z.string().optional(),
-  tindakan: z.string().optional(),
-  resep: z.string().optional(),
-  obat: z.string().optional(),
-  perawatan: z.string().optional(),
-  dosis: z.string().optional(),
-  catatanPerawatan: z.string().optional(),
-  catatanDokter: z.string().optional(),
-  lampiran: z.array(z.string()).optional(),
-})
+const createSchema = rekamMedisCreateSchema
 
 export async function GET(req: Request) {
   try {

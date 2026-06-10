@@ -1,7 +1,7 @@
 "use client"
 import React from 'react'
 import { useSession } from 'next-auth/react'
-import AppointmentForm from '@/components/pelanggan/AppointmentForm'
+import AppointmentForm from '@/components/client/AppointmentForm'
 import { useHewan } from '@/hooks/useHewan'
 import { useAppointment, useCreateAppointment } from '@/hooks/useAppointment'
 import { useDoctors } from '@/hooks/useDoctors'

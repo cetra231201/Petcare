@@ -2,10 +2,10 @@ import React from 'react'
 import { Document, Page, StyleSheet, Text, View, pdf } from '@react-pdf/renderer'
 import type { Appointment, Hewan, User } from '@/types'
 
-type AppointmentReportItem = Appointment & {
+type AppointmentReportItem = Omit<Appointment, 'hewan' | 'pelanggan' | 'dokter'> & {
   hewan?: { nama?: string | null }
   pelanggan?: { name?: string | null }
-  dokter?: { name?: string | null }
+  dokter?: { name?: string | null } | null
 }
 
 export const generateHewanCardDocument = (hewan: Hewan, owner: User) => {
@@ -111,17 +111,20 @@ export const generateAppointmentsPdfDocument = (appointments: AppointmentReportI
         <Text style={styles.brand}>KLINIK HEWAN</Text>
         <Text style={styles.header}>Laporan Janji Temu</Text>
         <Text style={styles.subheader}>Rekap daftar janji temu yang dapat dibagikan ke manajemen atau dicetak sebagai arsip.</Text>
-        {appointments.map((appt, index) => (
-          <View key={appt.id || index} style={styles.section}>
-            <Text style={styles.item}><Text style={styles.label}>No:</Text> {index + 1}</Text>
-            <Text style={styles.item}><Text style={styles.label}>Tanggal:</Text> {appt.tanggal?.toString() || appt.tanggal}</Text>
-            <Text style={styles.item}><Text style={styles.label}>Waktu:</Text> {appt.waktu}</Text>
-            <Text style={styles.item}><Text style={styles.label}>Jenis:</Text> {appt.jenis}</Text>
-            <Text style={styles.item}><Text style={styles.label}>Hewan:</Text> {appt.hewan?.nama || '-'}</Text>
-            <Text style={styles.item}><Text style={styles.label}>Pemilik:</Text> {appt.pelanggan?.name || '-'}</Text>
-            <Text style={styles.item}><Text style={styles.label}>Dokter:</Text> {appt.dokter?.name || '-'}</Text>
-          </View>
-        ))}
+        {appointments.map((appt, index) => {
+          const tanggal = appt.tanggal ? new Date(appt.tanggal).toLocaleDateString('id-ID') : '-'
+          return (
+            <View key={appt.id || index} style={styles.section}>
+              <Text style={styles.item}><Text style={styles.label}>No:</Text> {index + 1}</Text>
+              <Text style={styles.item}><Text style={styles.label}>Tanggal:</Text> {tanggal}</Text>
+              <Text style={styles.item}><Text style={styles.label}>Waktu:</Text> {appt.waktu}</Text>
+              <Text style={styles.item}><Text style={styles.label}>Jenis:</Text> {appt.jenis}</Text>
+              <Text style={styles.item}><Text style={styles.label}>Hewan:</Text> {appt.hewan?.nama || '-'}</Text>
+              <Text style={styles.item}><Text style={styles.label}>Pemilik:</Text> {appt.pelanggan?.name || '-'}</Text>
+              <Text style={styles.item}><Text style={styles.label}>Dokter:</Text> {appt.dokter?.name || '-'}</Text>
+            </View>
+          )
+        })}
       </Page>
     </Document>
   )

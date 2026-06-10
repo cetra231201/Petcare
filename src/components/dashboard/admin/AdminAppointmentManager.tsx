@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import useDoctors from '@/hooks/useDoctors'
+import { useDoctors } from '@/hooks/useDoctors'
 import { toast } from '@/components/shared/Toast'
 
 type Appointment = {
@@ -21,22 +21,26 @@ export default function AdminAppointmentManager() {
   const queryClient = useQueryClient()
   const [assignedDoctor, setAssignedDoctor] = useState<Record<string, string>>({})
   const { data: doctorData, isLoading: isDoctorsLoading } = useDoctors()
-  const { data, isLoading, isError } = useQuery(['adminAppointments'], async () => {
-    const res = await fetch('/api/appointment?limit=50')
-    if (!res.ok) throw new Error('Gagal memuat appointment')
-    return res.json()
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ['adminAppointments'],
+    queryFn: async () => {
+      const res = await fetch('/api/appointment?limit=50')
+      if (!res.ok) throw new Error('Gagal memuat appointment')
+      return res.json()
+    },
   })
 
-  const updateAppointment = useMutation(async ({ id, payload }: { id: string; payload: any }) => {
-    const res = await fetch(`/api/appointment/${id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    })
-    if (!res.ok) throw new Error('Gagal memperbarui appointment')
-    return res.json()
-  }, {
-    onSuccess: () => queryClient.invalidateQueries(['adminAppointments']),
+  const updateAppointment = useMutation({
+    mutationFn: async ({ id, payload }: { id: string; payload: any }) => {
+      const res = await fetch(`/api/appointment/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+      if (!res.ok) throw new Error('Gagal memperbarui appointment')
+      return res.json()
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['adminAppointments'] }),
   })
 
   if (isLoading || isDoctorsLoading) return <div className="rounded-xl bg-white p-4 shadow-sm border border-slate-100 text-slate-500">Memuat appointment...</div>

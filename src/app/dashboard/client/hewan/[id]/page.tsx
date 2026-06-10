@@ -1,7 +1,7 @@
 import React from 'react'
 import prisma from '@/lib/prisma'
 
-export default async function HewanDetail({ params }: { params: { id: string } }) {
+export default async function HewanDetail({ params }: any) {
   const hewan = await prisma.hewan.findUnique({ where: { id: params.id }, include: { pelanggan: true } })
   if (!hewan) return <div>Not found</div>
 

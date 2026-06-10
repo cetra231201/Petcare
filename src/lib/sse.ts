@@ -18,8 +18,7 @@ export class InMemorySSEAdapter implements SSEAdapter {
   private emitter = new EventEmitter()
 
   constructor() {
-    // Prevent Node.js MaxListenersExceeded warnings in production
-    this.emitter.setMaxListeners(100)
+    // EventEmitter3 does not support setMaxListeners; keep default behavior.
   }
 
   publish(event: SSEEvent) {

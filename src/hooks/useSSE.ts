@@ -3,8 +3,8 @@ import { useQueryClient } from '@tanstack/react-query'
 
 export default function useSSE(
   userId?: string,
-  onMessage?: (payload: unknown) => void,
-  invalidateQueryKey?: unknown,
+  onMessage?: (payload: any) => void,
+  invalidateQueryKey?: readonly unknown[],
 ) {
   const qc = useQueryClient()
 

@@ -1,16 +1,16 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { forbidden, getCurrentUserWithRole, notFound, unauthorized } from '@/lib/api-auth'
 import { logError } from '@/lib/error-logging'
 
-export async function PUT(req: Request, { params }: { params: { id: string } }) {
+export async function PUT(req: NextRequest, context: any) {
   try {
-    const token = await getCurrentUserWithRole(req)
+    const token = await getCurrentUserWithRole()
     if (!token) return unauthorized()
     if (token.role !== 'ADMIN' && token.role !== 'STAFF') return forbidden()
 
     const invoice = await prisma.invoice.findUnique({
-      where: { id: params.id },
+      where: { id: context.params.id },
       include: { items: true },
     })
     if (!invoice) return notFound()
@@ -44,7 +44,7 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
           quantity: item.quantity,
           beforeStock: stock,
           afterStock: stock - item.quantity,
-          note: `Auto deduct for invoice ${params.id}`,
+          note: `Auto deduct for invoice ${context.params.id}`,
         },
       }),
     ])
@@ -52,7 +52,7 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
     const result = await prisma.$transaction([
       ...operations,
       prisma.invoice.update({
-        where: { id: params.id },
+        where: { id: context.params.id },
         data: { status: 'PRINTED', printedAt: new Date(), printedById: token.id },
         include: { customer: true, hewan: true, approvedBy: true, printedBy: true, items: true },
       }),

@@ -27,7 +27,7 @@ export async function GET(req: Request) {
 
     const doc = generateAppointmentsPdfDocument(appointments)
     const buffer = await createPdfBufferFromDocument(doc)
-    return new Response(buffer, { status: 200, headers: { 'Content-Type': 'application/pdf', 'Content-Disposition': 'attachment; filename="laporan-appointments.pdf"' } })
+    return new Response(buffer as any, { status: 200, headers: { 'Content-Type': 'application/pdf', 'Content-Disposition': 'attachment; filename="laporan-appointments.pdf"' } })
   } catch (error) {
     logError(error, { fileName: 'reports/appointments/route.ts', functionName: 'GET' })
     return NextResponse.json({ message: 'Error generating report' }, { status: 500 })

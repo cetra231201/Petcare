@@ -1,30 +1,21 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
+import { ZodError } from 'zod'
 import { prisma } from '@/lib/prisma'
-import { z } from 'zod'
 import bcrypt from 'bcryptjs'
 import { forbidden, getCurrentUserWithRole, getTokenUserId, notFound, unauthorized } from '@/lib/api-auth'
 import { logError } from '@/lib/error-logging'
+import { userUpdateSchema } from '@/lib/validation/schemas'
 
-const updateSchema = z.object({
-  name: z.string().trim().optional(),
-  email: z.string().email().transform(e => e.toLowerCase()).optional(),
-  phone: z.string().optional(),
-  role: z.enum(['ADMIN', 'STAFF', 'DOKTER', 'CLIENT']).optional(),
-  password: z.string()
-    .min(8, 'Password must be at least 8 characters')
-    .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
-    .regex(/[0-9]/, 'Password must contain at least one number')
-    .optional(),
-})
+const updateSchema = userUpdateSchema
 
-export async function GET(_: Request, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, context: any) {
   try {
     const token = await getCurrentUserWithRole()
     if (!token) return unauthorized()
-    if (token.role !== 'ADMIN' && getTokenUserId(token) !== params.id) return forbidden()
+    if (token.role !== 'ADMIN' && getTokenUserId(token) !== context.params.id) return forbidden()
 
     const user = await prisma.user.findUnique({
-      where: { id: params.id },
+      where: { id: context.params.id },
       select: {
         id: true,
         name: true,
@@ -44,17 +35,17 @@ export async function GET(_: Request, { params }: { params: { id: string } }) {
   }
 }
 
-export async function PUT(req: Request, { params }: { params: { id: string } }) {
+export async function PUT(req: NextRequest, context: any) {
   try {
     const token = await getCurrentUserWithRole()
     if (!token) return unauthorized()
-    if (token.role !== 'ADMIN' && getTokenUserId(token) !== params.id) return forbidden()
+    if (token.role !== 'ADMIN' && getTokenUserId(token) !== context.params.id) return forbidden()
 
     const body = await req.json()
     const parsed = updateSchema.parse(body)
     
     // Get current user to check email/password constraints
-    const currentUser = await prisma.user.findUnique({ where: { id: params.id } })
+    const currentUser = await prisma.user.findUnique({ where: { id: context.params.id } })
     if (!currentUser) return notFound()
 
     // If password is being set, validate it's not the same as email
@@ -79,10 +70,10 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
       data.password = await bcrypt.hash(parsed.password, salt)
     }
 
-    const updated = await prisma.user.update({ where: { id: params.id }, data })
+    const updated = await prisma.user.update({ where: { id: context.params.id }, data })
     return NextResponse.json(updated)
   } catch (error) {
-    if (error instanceof z.ZodError) {
+    if (error instanceof ZodError) {
       return NextResponse.json(
         { message: 'Invalid input', errors: error.errors },
         { status: 400 }
@@ -93,12 +84,12 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
   }
 }
 
-export async function DELETE(_: Request, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, context: any) {
   try {
     const token = await getCurrentUserWithRole()
     if (!token) return unauthorized()
     if (token.role !== 'ADMIN') return forbidden()
-    await prisma.user.delete({ where: { id: params.id } })
+    await prisma.user.delete({ where: { id: context.params.id } })
     return NextResponse.json({ message: 'Deleted' })
   } catch (error) {
     logError(error, { fileName: 'users/[id]/route.ts', functionName: 'DELETE' })

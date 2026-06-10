@@ -18,7 +18,7 @@ export async function sendUpcomingAppointmentReminders(windowHours = 24) {
   for (const a of appts) {
     try {
       const to = a.pelanggan.email
-      await sendAppointmentReminder(to, { id: a.id, tanggal: a.tanggal.toISOString(), jenis: a.jenis })
+      await sendAppointmentReminder(to, a)
       await prisma.notifikasi.create({ data: { userId: a.pelangganId, judul: 'Pengingat Janji Temu', isi: `Janji temu untuk ${a.hewan.nama} pada ${a.tanggal.toLocaleString()}`, tipe: 'INFO' } })
       sent++
     } catch (err) {

@@ -1,16 +1,10 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { z } from 'zod'
 import { getApiToken, forbidden, notFound, unauthorized } from '@/lib/api-auth'
 import { logError } from '@/lib/error-logging'
+import { artikelUpdateSchema } from '@/lib/validation/schemas'
 
-const updateSchema = z.object({
-  judul: z.string().min(1).optional(),
-  slug: z.string().min(1).optional(),
-  konten: z.string().min(1).optional(),
-  thumbnail: z.string().url().optional(),
-  isPublished: z.boolean().optional(),
-})
+const updateSchema = artikelUpdateSchema
 
 function slugify(value: string) {
   return value
@@ -20,9 +14,9 @@ function slugify(value: string) {
     .replace(/^-+|-+$/g, '')
 }
 
-export async function GET(_: Request, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, context: any) {
   try {
-    const article = await prisma.artikel.findUnique({ where: { id: params.id } })
+    const article = await prisma.artikel.findUnique({ where: { id: context.params.id } })
     if (!article || !article.isPublished) return notFound()
     return NextResponse.json(article)
   } catch (error) {
@@ -31,7 +25,7 @@ export async function GET(_: Request, { params }: { params: { id: string } }) {
   }
 }
 
-export async function PUT(req: Request, { params }: { params: { id: string } }) {
+export async function PUT(req: NextRequest, context: any) {
   try {
     const token = await getApiToken()
     if (!token) return unauthorized()
@@ -42,13 +36,13 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
     const data: Record<string, unknown> = { ...parsed }
 
     if (parsed.slug) {
-      const existing = await prisma.artikel.findFirst({ where: { slug: parsed.slug, NOT: { id: params.id } } })
+      const existing = await prisma.artikel.findFirst({ where: { slug: parsed.slug, NOT: { id: context.params.id } } })
       if (existing) return NextResponse.json({ message: 'Slug already in use' }, { status: 400 })
     } else if (parsed.judul) {
       data.slug = slugify(parsed.judul)
     }
 
-    const updated = await prisma.artikel.update({ where: { id: params.id }, data })
+    const updated = await prisma.artikel.update({ where: { id: context.params.id }, data })
     return NextResponse.json(updated)
   } catch (error) {
     logError(error, { fileName: 'artikel/[id]/route.ts', functionName: 'PUT' })
@@ -56,13 +50,13 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
   }
 }
 
-export async function DELETE(_: Request, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, context: any) {
   try {
-    const token = await getApiToken(_)
+    const token = await getApiToken()
     if (!token) return unauthorized()
     if (token.role !== 'ADMIN') return forbidden()
 
-    await prisma.artikel.delete({ where: { id: params.id } })
+    await prisma.artikel.delete({ where: { id: context.params.id } })
     return NextResponse.json({ message: 'Deleted' })
   } catch (error) {
     logError(error, { fileName: 'artikel/[id]/route.ts', functionName: 'DELETE' })

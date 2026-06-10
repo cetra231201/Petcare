@@ -49,12 +49,12 @@ const NAV_LINKS: Record<string, NavLink[]> = {
     { label: 'Riwayat', href: '/dashboard/dokter/riwayat', icon: <Users size={18} /> },
   ],
   CLIENT: [
-    { label: 'Dashboard', href: '/dashboard/pelanggan', icon: <Home size={18} /> },
-    { label: 'Appointment', href: '/dashboard/pelanggan/appointment', icon: <CalendarDays size={18} /> },
-    { label: 'Monitoring', href: '/dashboard/pelanggan/monitoring', icon: <HeartPulse size={18} /> },
-    { label: 'Riwayat', href: '/dashboard/pelanggan/riwayat', icon: <Users size={18} /> },
-    { label: 'Hewan Saya', href: '/dashboard/pelanggan/hewan', icon: <PawPrint size={18} /> },
-    { label: 'Profil', href: '/dashboard/pelanggan/profil', icon: <Users size={18} /> },
+    { label: 'Dashboard', href: '/dashboard/client', icon: <Home size={18} /> },
+    { label: 'Appointment', href: '/dashboard/client/appointment', icon: <CalendarDays size={18} /> },
+    { label: 'Monitoring', href: '/dashboard/client/monitoring', icon: <HeartPulse size={18} /> },
+    { label: 'Riwayat', href: '/dashboard/client/riwayat', icon: <Users size={18} /> },
+    { label: 'Hewan Saya', href: '/dashboard/client/hewan', icon: <PawPrint size={18} /> },
+    { label: 'Profil', href: '/dashboard/client/profil', icon: <Users size={18} /> },
   ],
 }
 

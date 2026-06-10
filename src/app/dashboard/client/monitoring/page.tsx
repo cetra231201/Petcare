@@ -1,7 +1,7 @@
 import { auth } from '@/auth'
 import { redirect } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
-import MonitoringDashboard from '@/components/pelanggan/MonitoringDashboard'
+import MonitoringDashboard from '@/components/client/MonitoringDashboard'
 
 export default async function PelangganMonitoringPage() {
   const session = await auth()

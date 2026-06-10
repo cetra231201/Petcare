@@ -2,9 +2,9 @@ import React from 'react'
 import { redirect } from 'next/navigation'
 import { auth } from '@/auth'
 import prisma from '@/lib/prisma'
-import RekamMedisClient from '@/components/pelanggan/RekamMedisClient'
+import RekamMedisClient from '@/components/client/RekamMedisClient'
 
-export default async function RekamMedisPage({ params }: { params: { id: string } }) {
+export default async function RekamMedisPage({ params }: any) {
   const session = await auth()
   if (!session) redirect('/dashboard')
   const currentUserId = (session.user as any)?.id as string

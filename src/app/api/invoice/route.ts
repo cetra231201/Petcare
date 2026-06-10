@@ -1,21 +1,9 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { z } from 'zod'
+import { InvoiceStatus } from '@prisma/client'
 import { forbidden, getCurrentUserWithRole, unauthorized } from '@/lib/api-auth'
 import { logError } from '@/lib/error-logging'
-
-const invoiceItemSchema = z.object({
-  inventoryId: z.string().optional(),
-  namaItem: z.string().min(1),
-  quantity: z.coerce.number().int().min(1),
-  unitPrice: z.coerce.number().min(0),
-})
-
-const createSchema = z.object({
-  customerId: z.string().min(1),
-  hewanId: z.string().optional(),
-  items: z.array(invoiceItemSchema).min(1),
-})
+import { invoiceCreateSchema } from '@/lib/validation/schemas'
 
 async function generateInvoiceNumber() {
   const now = new Date()
@@ -36,12 +24,12 @@ async function generateInvoiceNumber() {
 
 export async function GET(req: Request) {
   try {
-    const token = await getCurrentUserWithRole(req)
+    const token = await getCurrentUserWithRole()
     if (!token) return unauthorized()
     if (token.role !== 'ADMIN' && token.role !== 'STAFF') return forbidden()
 
     const url = new URL(req.url)
-    const status = url.searchParams.get('status') as string | null
+    const status = url.searchParams.get('status') as InvoiceStatus | null
     const invoices = await prisma.invoice.findMany({
       where: status ? { status } : undefined,
       orderBy: { createdAt: 'desc' },
@@ -57,19 +45,23 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
-    const token = await getCurrentUserWithRole(req)
+    const token = await getCurrentUserWithRole()
     if (!token) return unauthorized()
     if (token.role !== 'ADMIN' && token.role !== 'STAFF') return forbidden()
 
     const body = await req.json()
-    const parsed = createSchema.parse(body)
+    const parsed = invoiceCreateSchema.parse(body)
     const total = parsed.items.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0)
+
+    if (parsed.total !== undefined && parsed.total !== total) {
+      return NextResponse.json({ message: 'Total tidak sesuai dengan jumlah item' }, { status: 400 })
+    }
 
     const created = await prisma.invoice.create({
       data: {
         invoiceNumber: await generateInvoiceNumber(),
         customerId: parsed.customerId,
-        hewanId: parsed.hewanId,
+        hewanId: parsed.hewanId ?? null,
         total,
         status: 'DRAFT',
         items: {

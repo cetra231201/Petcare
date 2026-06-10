@@ -38,7 +38,7 @@ export default function PelangganHome() {
       </div>
 
       <section className="mt-8 grid gap-4 md:grid-cols-3">
-        <Link href="/dashboard/pelanggan/monitoring" className="group rounded-[1.75rem] border border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:border-teal-300 hover:shadow-[0_20px_50px_rgba(15,23,42,0.08)]">
+        <Link href="/dashboard/client/monitoring" className="group rounded-[1.75rem] border border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:border-teal-300 hover:shadow-[0_20px_50px_rgba(15,23,42,0.08)]">
           <div className="flex items-center justify-between gap-4">
             <div>
               <p className="text-sm text-slate-500">Cek status kesehatan</p>
@@ -48,7 +48,7 @@ export default function PelangganHome() {
           </div>
         </Link>
 
-        <Link href="/dashboard/pelanggan/riwayat" className="group rounded-[1.75rem] border border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:border-teal-300 hover:shadow-[0_20px_50px_rgba(15,23,42,0.08)]">
+        <Link href="/dashboard/client/riwayat" className="group rounded-[1.75rem] border border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:border-teal-300 hover:shadow-[0_20px_50px_rgba(15,23,42,0.08)]">
           <div className="flex items-center justify-between gap-4">
             <div>
               <p className="text-sm text-slate-500">Lihat riwayat kunjungan</p>
@@ -58,7 +58,7 @@ export default function PelangganHome() {
           </div>
         </Link>
 
-        <Link href="/dashboard/pelanggan/profil" className="group rounded-[1.75rem] border border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:border-teal-300 hover:shadow-[0_20px_50px_rgba(15,23,42,0.08)]">
+        <Link href="/dashboard/client/profil" className="group rounded-[1.75rem] border border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:border-teal-300 hover:shadow-[0_20px_50px_rgba(15,23,42,0.08)]">
           <div className="flex items-center justify-between gap-4">
             <div>
               <p className="text-sm text-slate-500">Perbarui informasi akun</p>

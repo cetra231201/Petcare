@@ -1,7 +1,7 @@
 import { auth } from '@/auth'
 import { redirect } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
-import RiwayatHistory from '@/components/pelanggan/RiwayatHistory'
+import RiwayatHistory from '@/components/client/RiwayatHistory'
 
 export default async function PelangganRiwayatPage() {
   const session = await auth()

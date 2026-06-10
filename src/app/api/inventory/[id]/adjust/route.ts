@@ -1,24 +1,20 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { z } from 'zod'
 import { forbidden, getApiToken, notFound, unauthorized } from '@/lib/api-auth'
 import { logError } from '@/lib/error-logging'
+import { inventoryAdjustmentSchema } from '@/lib/validation/schemas'
 
-const adjustSchema = z.object({
-  adjustment: z.coerce.number().int(),
-  note: z.string().optional(),
-})
-
-export async function PUT(req: Request, { params }: { params: { id: string } }) {
+export async function PUT(req: NextRequest, context: any) {
   try {
     const token = await getApiToken()
     if (!token) return unauthorized()
     if (token.role !== 'ADMIN' && token.role !== 'STAFF') return forbidden()
 
     const body = await req.json()
-    const parsed = adjustSchema.parse(body)
+    const parsed = inventoryAdjustmentSchema.parse(body)
+    const { id } = context.params
 
-    const inventory = await prisma.inventory.findUnique({ where: { id: params.id } })
+    const inventory = await prisma.inventory.findUnique({ where: { id } })
     if (!inventory) return notFound()
 
     const nextStock = inventory.stok + parsed.adjustment
@@ -28,7 +24,7 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
 
     const updated = await prisma.$transaction([
       prisma.inventory.update({
-        where: { id: params.id },
+        where: { id },
         data: {
           stok: nextStock,
           lastManualCheckAt: new Date(),
@@ -36,9 +32,9 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
       }),
       prisma.inventoryMovement.create({
         data: {
-          inventoryId: params.id,
+          inventoryId: id,
           userId: token.id,
-          type: 'MANUAL_ADJUSTMENT',
+          type: parsed.type,
           quantity: parsed.adjustment,
           beforeStock: inventory.stok,
           afterStock: nextStock,

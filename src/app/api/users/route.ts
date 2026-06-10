@@ -1,20 +1,11 @@
 import { NextResponse } from 'next/server'
+import { ZodError } from 'zod'
 import { prisma } from '@/lib/prisma'
-import { z } from 'zod'
 import bcrypt from 'bcryptjs'
 import { forbidden, getCurrentUserWithRole, unauthorized } from '@/lib/api-auth'
 import { logError } from '@/lib/error-logging'
 import { checkRateLimit } from '@/lib/rate-limit'
-
-const createSchema = z.object({ 
-  name: z.string().trim().min(1), 
-  email: z.string().email().transform(e => e.toLowerCase()), 
-  role: z.enum(['ADMIN','STAFF','DOKTER','CLIENT']), 
-  password: z.string()
-    .min(8, 'Password must be at least 8 characters')
-    .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
-    .regex(/[0-9]/, 'Password must contain at least one number')
-})
+import { userCreateSchema } from '@/lib/validation/schemas'
 
 // Validate password is not the same as email
 function validatePasswordNotEmail(password: string, email: string): boolean {
@@ -41,7 +32,7 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   try {
     const body = await req.json()
-    const parsed = createSchema.parse(body)
+    const parsed = userCreateSchema.parse(body)
 
     // Validate password is not the same as email
     if (!validatePasswordNotEmail(parsed.password, parsed.email)) {
@@ -87,7 +78,7 @@ export async function POST(req: Request) {
     })
     return NextResponse.json(created, { status: 201 })
   } catch (error) {
-    if (error instanceof z.ZodError) {
+    if (error instanceof ZodError) {
       return NextResponse.json(
         { message: 'Invalid input', errors: error.errors },
         { status: 400 }
