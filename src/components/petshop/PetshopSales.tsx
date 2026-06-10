@@ -44,7 +44,7 @@ export default function PetshopSales({ role }: { role: 'ADMIN' | 'STAFF' }) {
     fetch('/api/users?role=CLIENT')
       .then((res) => res.ok ? res.json() : Promise.reject())
       .then((data) => setCustomers(data.data || []))
-      .catch(() => toast('Gagal memuat pelanggan'))
+      .catch(() => toast('Gagal memuat client'))
   }, [])
 
   useEffect(() => {
@@ -53,7 +53,7 @@ export default function PetshopSales({ role }: { role: 'ADMIN' | 'STAFF' }) {
       return
     }
 
-    fetch(`/api/hewan?pelangganId=${customerId}`)
+    fetch(`/api/hewan?clientId=${customerId}`)
       .then((res) => res.ok ? res.json() : Promise.reject())
       .then((data) => setHewans(data.data || []))
       .catch(() => setHewans([]))
@@ -124,9 +124,9 @@ export default function PetshopSales({ role }: { role: 'ADMIN' | 'STAFF' }) {
           <form onSubmit={handleSubmit(handleSubmitInvoice)} className="mt-6 space-y-4">
             <div className="grid gap-4 md:grid-cols-2">
               <div>
-                <label className="block text-sm font-medium text-slate-700">Pelanggan</label>
+                <label className="block text-sm font-medium text-slate-700">Client</label>
                 <select {...register('customerId')} className="mt-1 w-full rounded-xl border border-slate-200 p-2.5">
-                  <option value="">Pilih pelanggan</option>
+                  <option value="">Pilih client</option>
                   {customers.map((customer) => (
                     <option key={customer.id} value={customer.id}>{customer.name}</option>
                   ))}

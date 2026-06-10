@@ -46,7 +46,7 @@ export default function InvoiceDashboard({ role }: { role: 'ADMIN' | 'STAFF' }) 
     fetch('/api/users?role=CLIENT')
       .then((res) => res.ok ? res.json() : Promise.reject())
       .then((data) => setCustomers(data.data || []))
-      .catch(() => toast('Gagal memuat pelanggan'))
+      .catch(() => toast('Gagal memuat client'))
   }, [])
 
   useEffect(() => {
@@ -54,7 +54,7 @@ export default function InvoiceDashboard({ role }: { role: 'ADMIN' | 'STAFF' }) 
       setHewans([])
       return
     }
-    fetch(`/api/hewan?pelangganId=${customerId}`)
+    fetch(`/api/hewan?clientId=${customerId}`)
       .then((res) => res.ok ? res.json() : Promise.reject())
       .then((data) => setHewans(data.data || []))
       .catch(() => setHewans([]))
@@ -145,9 +145,9 @@ export default function InvoiceDashboard({ role }: { role: 'ADMIN' | 'STAFF' }) 
           <form onSubmit={handleSubmit(handleCreate)} className="mt-4 space-y-4">
             <div className="grid gap-4 md:grid-cols-2">
               <div>
-                <label className="block text-sm font-medium text-slate-700">Pelanggan</label>
+                <label className="block text-sm font-medium text-slate-700">Client</label>
                 <select {...register('customerId')} className="mt-1 w-full rounded-xl border border-slate-200 p-2.5">
-                  <option value="">Pilih pelanggan</option>
+                  <option value="">Pilih client</option>
                   {customers.map((customer) => (
                     <option key={customer.id} value={customer.id}>{customer.name}</option>
                   ))}
@@ -241,7 +241,7 @@ export default function InvoiceDashboard({ role }: { role: 'ADMIN' | 'STAFF' }) 
               <div className="flex flex-col gap-3 md:flex-row md:justify-between md:items-start">
                 <div className="space-y-1">
                   <div className="text-sm text-slate-500">{invoice.invoiceNumber}</div>
-                  <div className="text-lg font-semibold">{invoice.customer?.name || 'Pelanggan tidak diketahui'}</div>
+                  <div className="text-lg font-semibold">{invoice.customer?.name || 'Client tidak diketahui'}</div>
                   <div className="text-sm text-slate-600">Total: Rp {invoice.total.toLocaleString('id-ID')}</div>
                   <div className="text-sm text-slate-600">Status: {STATUS_LABELS[invoice.status] || invoice.status}</div>
                   {invoice.approvedAt && <div className="text-sm text-slate-600">Disetujui oleh {invoice.approvedBy?.name || 'Admin'} pada {new Date(invoice.approvedAt).toLocaleString('id-ID')}</div>}

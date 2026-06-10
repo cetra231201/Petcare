@@ -14,6 +14,7 @@ const createSchema = z.object({
   foto: z.string().optional(),
   catatanKhusus: z.string().optional(),
   pelangganId: z.string().optional(),
+  clientId: z.string().optional(),
 })
 
 export async function GET(req: Request): Promise<NextResponse> {
@@ -26,7 +27,7 @@ export async function GET(req: Request): Promise<NextResponse> {
     const url = new URL(req.url)
     const page = Number(url.searchParams.get('page') || '1')
     const limit = Number(url.searchParams.get('limit') || '10')
-    const pelangganId = url.searchParams.get('pelangganId')
+    const pelangganId = url.searchParams.get('pelangganId') ?? url.searchParams.get('clientId')
     const skip = (page - 1) * limit
 
     interface WhereClause {
@@ -68,6 +69,7 @@ export async function POST(req: Request): Promise<NextResponse> {
 
     const body = await req.json()
     const parsed = createSchema.parse(body)
+    if (parsed.clientId && !parsed.pelangganId) parsed.pelangganId = parsed.clientId
     if (role === 'CLIENT') parsed.pelangganId = userId
     if (!parsed.pelangganId) return NextResponse.json({ message: 'pelangganId is required' }, { status: 400 })
     if (role === 'CLIENT' && parsed.pelangganId !== userId) return forbidden()
